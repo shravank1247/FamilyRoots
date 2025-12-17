@@ -4,12 +4,23 @@ import { supabase } from '../config/supabaseClient';
 
 // --- Families ---
 
-export async function fetchUserFamilies(profileId) {
-    const { data: families, error } = await supabase
+export async function fetchUserFamilies(profileId, userEmail) {
+    // Fetch trees I own
+    const owned = await supabase
         .from('families')
         .select('*')
         .eq('owner_id', profileId);
-    return { families, error };
+
+    // Fetch trees shared with me
+    const shared = await supabase
+        .from('family_shares')
+        .select('families(*)')
+        .eq('shared_with_email', userEmail);
+
+    const sharedFamilies = shared.data?.map(s => s.families) || [];
+    const ownedFamilies = owned.data || [];
+
+    return { families: [...ownedFamilies, ...sharedFamilies], error: null };
 }
 
 export async function createNewFamilyTree(name, profileId) {

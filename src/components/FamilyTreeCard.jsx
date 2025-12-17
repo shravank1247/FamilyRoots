@@ -17,6 +17,18 @@ import React, { useState } from 'react';
         setIsRenaming(false);
     };
 
+    const handleShare = async () => {
+    const email = prompt("Enter the email of the person you want to share this tree with:");
+    if (email) {
+        const { error } = await supabase
+            .from('family_shares')
+            .insert([{ family_id: family.id, shared_with_email: email.toLowerCase(), permission_level: 'view' }]);
+        
+        if (error) alert("Error sharing: " + error.message);
+        else alert("Shared successfully with " + email);
+    }
+};
+
     return (
         <div className="tree-card" style={{ borderLeft: '5px solid var(--primary-color)', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', background: '#fff' }}>
             <div className="card-header" style={{ marginBottom: '15px' }}>
@@ -58,6 +70,7 @@ import React, { useState } from 'react';
                     >
                         ✏️ Rename
                     </button>
+                    <button onClick={handleShare} className="secondary-btn">🔗 Share</button>
                 </div>
                 
                 <button 
