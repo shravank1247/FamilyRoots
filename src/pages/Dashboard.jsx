@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { checkAuth, fetchProfileId, signOut } from '../services/auth';
-import { fetchUserFamilies, createNewFamilyTree, deleteFamilyTree, renameFamilyTree } from '../services/api';
+import { fetchUserFamilies, createNewFamilyTree, deleteFamilyTree, renameFamilyTree , shareFamilyTree} from '../services/api';
 import FamilyTreeCard from '../components/FamilyTreeCard';
 import Modal from '../components/Modal'; 
 
@@ -75,6 +75,15 @@ const Dashboard = () => {
         }
     };
 
+    const handleShareTree = async (familyId, email) => {
+    const { error } = await shareFamilyTree(familyId, email);
+    if (error) {
+        alert("Error sharing: " + error.message);
+    } else {
+        alert("Tree shared successfully with " + email);
+    }
+};
+
     const handleRenameTree = async (familyId, newName) => {
         const { error } = await renameFamilyTree(familyId, newName);
         if (error) {
@@ -139,6 +148,7 @@ const Dashboard = () => {
                                 onView={handleViewTree}
                                 onDelete={handleDeleteTree}
                                 onRename={handleRenameTree}
+                                onShare={handleShareTree}
                             />
                         ))
                     ) : (

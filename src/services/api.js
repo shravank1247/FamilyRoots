@@ -23,6 +23,19 @@ export async function fetchUserFamilies(profileId, userEmail) {
     return { families: [...ownedFamilies, ...sharedFamilies], error: null };
 }
 
+export async function shareFamilyTree(familyId, email) {
+    const { data, error } = await supabase
+        .from('family_shares')
+        .insert([
+            { 
+                family_id: familyId, 
+                shared_with_email: email.toLowerCase().trim(), 
+                permission_level: 'view' 
+            }
+        ]);
+    return { data, error };
+}
+
 export async function createNewFamilyTree(name, profileId) {
     const { data, error } = await supabase
         .from('families')

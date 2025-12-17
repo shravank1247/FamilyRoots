@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-    const FamilyTreeCard = ({ family, onView, onDelete, onRename }) => {
+    const FamilyTreeCard = ({ family, onView, onDelete, onRename, onShare }) => {
     const [isRenaming, setIsRenaming] = useState(false);
     const [newName, setNewName] = useState(family.name);
 
@@ -17,17 +17,15 @@ import React, { useState } from 'react';
         setIsRenaming(false);
     };
 
-    const handleShare = async () => {
-    const email = prompt("Enter the email of the person you want to share this tree with:");
-    if (email) {
-        const { error } = await supabase
-            .from('family_shares')
-            .insert([{ family_id: family.id, shared_with_email: email.toLowerCase(), permission_level: 'view' }]);
-        
-        if (error) alert("Error sharing: " + error.message);
-        else alert("Shared successfully with " + email);
-    }
-};
+    const handleShareClick = (e) => {
+        e.stopPropagation(); // Stop card click from opening the tree
+        const email = prompt("Enter user email to share this tree with:");
+        if (email && email.includes('@')) {
+            onShare(family.id, email);
+        } else if (email) {
+            alert("Please enter a valid email.");
+        }
+    };
 
     return (
         <div className="tree-card" style={{ borderLeft: '5px solid var(--primary-color)', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', background: '#fff' }}>
@@ -70,7 +68,9 @@ import React, { useState } from 'react';
                     >
                         ✏️ Rename
                     </button>
-                    <button onClick={handleShare} className="secondary-btn">🔗 Share</button>
+                    <button onClick={handleShareClick} className="share-btn" style={{ backgroundColor: '#9b59b6', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}>
+                    🔗 Share
+                </button>
                 </div>
                 
                 <button 
