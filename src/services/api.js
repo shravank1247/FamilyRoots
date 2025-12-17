@@ -5,28 +5,24 @@ import { supabase } from '../config/supabaseClient';
 // --- Families ---
 
 export async function fetchUserFamilies(profileId, userEmail) {
-    // 1. Fetch trees where the user is the OWNER
-    const { data: ownedFamilies, error: ownedError } = await supabase
-        .from('families')
-        .select('*')
-        .eq('owner_id', profileId);
+    // 1. Fetch Owned
+    const { data: owned } = await supabase.from('families').select('*').eq('owner_id', profileId);
 
-    // 2. Fetch trees SHARED with this user's email
-    // We select the 'families' data through the relationship
-    const { data: sharedEntries, error: sharedError } = await supabase
+    // 2. Fetch Shared
+    const { data: sharedEntries } = await supabase
         .from('family_shares')
         .select(`
-            family_id,
             families (*)
         `)
         .eq('shared_with_email', userEmail.toLowerCase().trim());
-
     if (ownedError || sharedError) {
         return { families: [], error: ownedError || sharedError };
     }
 
     // Extract the family objects from the sharing records
-    const sharedFamilies = sharedEntries ? sharedEntries.map(entry => entry.families) : [];
+    const sharedFamilies = sharedEntries 
+        ? sharedEntries.map(entry => entry.families).filter(f => f !== null) 
+        : [];
     
     // Merge both lists and remove any potential duplicates
     const allFamilies = [...(ownedFamilies || []), ...sharedFamilies];
