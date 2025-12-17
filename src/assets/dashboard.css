@@ -1,0 +1,181 @@
+/* /css/dashboard.css */
+
+/* Global App Layout */
+#app-wrapper {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    margin-left: 0;
+}
+
+/* Sidebar Styling */
+#sidebar {
+    width: 250px;
+    background-color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: fixed; /* Fixed position */
+    height: 100%;
+}
+
+.sidebar-header {
+    margin-bottom: 30px;
+}
+
+.app-title {
+    font-size: 1.5em;
+    margin-bottom: 5px;
+    color: var(--primary-color);
+}
+
+.user-info {
+    font-size: 0.9em;
+    color: #666;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Navigation Links */
+.main-nav {
+    flex-grow: 1; /* Pushes the footer down */
+}
+
+.nav-link {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: var(--text-dark);
+    border-radius: var(--border-radius);
+    margin-bottom: 5px;
+    transition: background-color 0.2s;
+}
+
+.nav-link:hover {
+    background-color: var(--background-light);
+}
+
+.nav-link.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Main Content Area */
+#main-content {
+    margin-left: 250px; /* Offset to clear the fixed sidebar */
+    flex-grow: 1;
+    padding: 40px;
+    width: calc(100% - 250px);
+}
+
+#family-tree-view h2 {
+    margin-bottom: 20px;
+    color: var(--secondary-color);
+}
+
+/* Tree Grid Layout */
+.tree-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* Empty State Styling */
+.empty-state {
+    text-align: center;
+    padding: 50px;
+    background: white;
+    border-radius: var(--border-radius);
+    border: 1px dashed #ccc;
+    margin-top: 30px;
+}
+
+.empty-state h3 {
+    color: var(--secondary-color);
+    margin-bottom: 10px;
+}
+
+
+/* --- MODAL STYLING --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's above all other content */
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.close-btn {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-btn:hover {
+    color: var(--text-dark);
+}
+
+/* Form Styling */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: var(--border-radius);
+    font-size: 1em;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.form-actions button {
+    width: auto;
+    padding: 10px 20px;
+}

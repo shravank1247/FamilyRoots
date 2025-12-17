@@ -1,0 +1,73 @@
+/* /css/styles.css */
+
+/* Global Reset and Variables */
+:root {
+    --primary-color: #2e8b57; /* Sea Green - Represents roots, life, and family */
+    --secondary-color: #4682b4; /* Steel Blue - For a cool, reliable accent */
+    --background-light: #f4f6f9;
+    --text-dark: #333;
+    --border-radius: 8px;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    line-height: 1.6;
+    color: var(--text-dark);
+    background-color: var(--background-light);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Typography */
+h1 {
+    font-size: 2.5em;
+    color: var(--primary-color);
+    margin-bottom: 0.2em;
+}
+
+h2 {
+    font-size: 1.2em;
+    font-weight: 400;
+    color: var(--secondary-color);
+    margin-bottom: 1.5em;
+}
+
+p {
+    margin-bottom: 1em;
+}
+
+/* Layout - Main Container for Login Page */
+.container {
+    background: white;
+    padding: 40px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    max-width: 400px; /* IMPORTANT: Ensures the container is not too wide */
+    width: 90%;
+    text-align: center;
+    /* IMPORTANT: Ensures the container is positioned normally and on top */
+    position: relative;
+    z-index: 20;
+}
+
+/* Authentication Section Specifics */
+.auth-section {
+    padding: 20px 0;
+    border-top: 1px solid #eee;
+    margin-top: 20px;
+}
+
+.status-message {
+    margin-top: 15px;
+    color: #cc0000; /* Error color */
+    font-size: 0.9em;
+}

@@ -1,0 +1,226 @@
+/* /css/dashboard.css */
+
+/* Global App Layout */
+#app-wrapper {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    margin-left: 0;
+}
+
+/* Sidebar Styling */
+#sidebar {
+    width: 250px;
+    background-color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: fixed; /* Fixed position */
+    height: 100%;
+}
+
+.sidebar-header {
+    margin-bottom: 30px;
+}
+
+.app-title {
+    font-size: 1.5em;
+    margin-bottom: 5px;
+    color: var(--primary-color);
+}
+
+.user-info {
+    font-size: 0.9em;
+    color: #666;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Navigation Links */
+.main-nav {
+    flex-grow: 1; /* Pushes the footer down */
+}
+
+.nav-link {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: var(--text-dark);
+    border-radius: var(--border-radius);
+    margin-bottom: 5px;
+    transition: background-color 0.2s;
+}
+
+.nav-link:hover {
+    background-color: var(--background-light);
+}
+
+.nav-link.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Main Content Area */
+#main-content {
+    margin-left: 250px; /* Offset to clear the fixed sidebar */
+    flex-grow: 1;
+    padding: 40px;
+    width: calc(100% - 250px);
+    overflow-y: auto; /* Allows scrolling if content is long */
+}
+
+#family-tree-view h2 {
+    margin-bottom: 20px;
+    color: var(--secondary-color);
+}
+
+/* Tree Grid Layout */
+.tree-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* --- NEW: Family Tree Card Styling --- */
+.tree-card {
+    background: white;
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    /* Border set in JS - Border-left: 5px solid var(--primary-color); */
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s;
+}
+
+.tree-card:hover {
+    transform: translateY(-3px); /* Lifts the card slightly on hover */
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.card-header h3 {
+    font-size: 1.4em;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+}
+
+.card-body {
+    padding: 10px 0;
+    border-top: 1px dashed #eee;
+    border-bottom: 1px dashed #eee;
+    margin: 10px 0;
+}
+
+.card-body p {
+    margin: 5px 0;
+    font-size: 0.95em;
+    color: #555;
+}
+
+.creation-date {
+    font-style: italic;
+    font-size: 0.85em !important;
+    color: #888 !important;
+}
+
+.card-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* Button overrides for card footer */
+.card-footer button {
+    padding: 8px 12px;
+    font-size: 0.9em;
+    width: auto;
+    flex-grow: 1;
+}
+/* --- END NEW CARD STYLING --- */
+
+
+/* Empty State Styling */
+.empty-state {
+    text-align: center;
+    padding: 50px;
+    background: white;
+    border-radius: var(--border-radius);
+    border: 1px dashed #ccc;
+    margin-top: 30px;
+}
+
+.empty-state h3 {
+    color: var(--secondary-color);
+    margin-bottom: 10px;
+}
+
+/* /css/components.css */
+
+/* --- GENERAL BUTTON STYLES --- */
+button {
+    font-size: 1em;
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    font-weight: 600;
+    width: 100%; /* Default width for uniformity */
+}
+
+/* --- Secondary Button (Used for Sign Out/Cancel) --- */
+.secondary-btn {
+    background-color: transparent;
+    color: var(--text-dark);
+    border: 1px solid #ccc;
+}
+
+.secondary-btn:hover {
+    background-color: var(--background-light);
+}
+
+/* --- Primary Button (Used for Submit) --- */
+.primary-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: 1px solid var(--primary-color);
+}
+
+.primary-btn:hover {
+    background-color: #267145; /* Slightly darker primary */
+}
+
+/* --- GOOGLE BUTTON SPECIFIC STYLES --- */
+.google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    color: var(--text-dark);
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,.1);
+    gap: 10px;
+    height: 48px;
+    /* IMPORTANT: Ensure button is positioned normally */
+    position: relative; 
+    z-index: 10; 
+}
+
+.google-btn:hover {
+    background-color: #f7f7f7;
+    border-color: #aaa;
+}
+
+.google-btn:active {
+    box-shadow: none;
+}
+
+/* THIS IS CRITICAL: Force the image inside the button to be small */
+.google-btn img {
+    height: 20px; 
+    width: 20px;
+    /* Optional: Remove any default margin/padding that might be causing issues */
+    margin: 0;
+    padding: 0;
+}

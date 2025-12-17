@@ -1,0 +1,143 @@
+/* /css/tree.css */
+
+/* Header and Actions */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.page-header h2 {
+    color: var(--primary-color);
+    margin: 0;
+}
+
+/* Visualization Container */
+.tree-container {
+    background: white;
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    min-height: 400px;
+}
+
+/* Grid for People Cards */
+.people-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    padding-top: 10px;
+}
+
+/* Person Card Styling */
+.person-card {
+    background-color: var(--background-light);
+    border-radius: var(--border-radius);
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border-top: 4px solid var(--secondary-color);
+}
+
+.profile-img-placeholder {
+    width: 60px;
+    height: 60px;
+    background-color: #ccc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    font-size: 1.5em;
+    color: white;
+}
+
+.person-card h4 {
+    margin: 0 0 5px 0;
+    font-size: 1.1em;
+    color: var(--text-dark);
+}
+
+.person-card p {
+    margin: 0;
+    font-size: 0.85em;
+    color: #666;
+}
+
+.card-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.card-actions button {
+    padding: 5px 10px;
+    font-size: 0.75em;
+}
+
+/* Form Styling Additions */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkbox-group .inline-label {
+    font-weight: normal;
+    margin: 0;
+    display: inline-block;
+}
+
+/* /css/tree.css (Add this section) */
+
+/* Modal Body Layout */
+.modal-body-content {
+    display: flex;
+    gap: 30px;
+}
+
+.relation-form-column, .relation-list-column {
+    flex: 1; /* Both columns take equal space */
+}
+
+.relation-list-column {
+    border-left: 1px solid #eee;
+    padding-left: 30px;
+}
+
+.relation-list-column h4 {
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+/* List Item Styling */
+.relation-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.relation-details {
+    line-height: 1.4;
+}
+
+.relation-item:last-child {
+    border-bottom: none;
+}
+
+.delete-relation-btn {
+    background-color: #ffcccc;
+    color: #cc0000;
+    border: 1px solid #ff9999;
+    padding: 5px 10px;
+    font-size: 0.8em;
+}
