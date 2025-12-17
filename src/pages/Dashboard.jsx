@@ -21,25 +21,26 @@ const Dashboard = () => {
     // 1. Initial Authentication and Data Fetch
     useEffect(() => {
         async function authenticateAndLoad() {
-            // App.jsx handles the redirect, so we just get the user here
+        try {
             const authUser = await checkAuth();
-            
             if (authUser) {
                 setUser(authUser);
-                // Fetch the profile ID required for all database operations
-                const pId = await fetchProfileId(authUser.id); 
+                const pId = await fetchProfileId(authUser.id);
                 setProfileId(pId);
-
                 if (pId) {
                     await loadFamilies(pId, authUser.email);
-                } else {
-                    setMessage('Error: User profile not found. Please relogin.');
                 }
             }
-            setIsLoading(false);
+        } catch (err) {
+            console.error(err);
+            setMessage("An error occurred while loading.");
+        } finally {
+            // This ensures the loading screen goes away no matter what
+            setIsLoading(false); 
         }
-        authenticateAndLoad();
-    }, []); // Clean dependencies
+    }
+    authenticateAndLoad();
+}, []);// Clean dependencies
 
     const loadFamilies = async (pId,email) => {
         const { families: fetchedFamilies, error } = await fetchUserFamilies(pId, email);

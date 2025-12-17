@@ -21,7 +21,9 @@ export async function fetchUserFamilies(profileId, userEmail) {
 
     // Extract the family objects from the sharing records
     const sharedFamilies = sharedEntries 
-        ? sharedEntries.map(entry => entry.families).filter(f => f !== null) 
+        ? sharedEntries
+            .map(entry => entry.families)
+            .filter(f => f !== null) // This prevents the 'null' from crashing the app
         : [];
     
     // Merge both lists and remove any potential duplicates
