@@ -5,22 +5,36 @@ import { supabase } from '../config/supabaseClient';
 // --- Families ---
 
 export async function fetchUserFamilies(profileId, userEmail) {
-    // Fetch trees I own
-    const owned = await supabase
+    // 1. Fetch trees where the user is the OWNER
+    const { data: ownedFamilies, error: ownedError } = await supabase
         .from('families')
         .select('*')
         .eq('owner_id', profileId);
 
-    // Fetch trees shared with me
-    const shared = await supabase
+    // 2. Fetch trees SHARED with this user's email
+    // We select the 'families' data through the relationship
+    const { data: sharedEntries, error: sharedError } = await supabase
         .from('family_shares')
-        .select('families(*)')
-        .eq('shared_with_email', userEmail);
+        .select(`
+            family_id,
+            families (*)
+        `)
+        .eq('shared_with_email', userEmail.toLowerCase().trim());
 
-    const sharedFamilies = shared.data?.map(s => s.families) || [];
-    const ownedFamilies = owned.data || [];
+    if (ownedError || sharedError) {
+        return { families: [], error: ownedError || sharedError };
+    }
 
-    return { families: [...ownedFamilies, ...sharedFamilies], error: null };
+    // Extract the family objects from the sharing records
+    const sharedFamilies = sharedEntries ? sharedEntries.map(entry => entry.families) : [];
+    
+    // Merge both lists and remove any potential duplicates
+    const allFamilies = [...(ownedFamilies || []), ...sharedFamilies];
+    
+    // Filter out any nulls and unique by ID
+    const uniqueFamilies = Array.from(new Map(allFamilies.map(f => [f.id, f])).values());
+
+    return { families: uniqueFamilies, error: null };
 }
 
 export async function shareFamilyTree(familyId, email) {
@@ -60,7 +74,7 @@ export async function renameFamilyTree(familyId, newName) {
 // --- People and Relationships ---
 
 export async function fetchPeopleByFamily(familyId) {
-    // !inner ensures we only get people specifically linked to THIS familyId
+    // We use !inner to join people -> family_members -> check family_id
     const { data: people, error } = await supabase
         .from('people')
         .select(`

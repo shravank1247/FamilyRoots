@@ -31,7 +31,7 @@ const Dashboard = () => {
                 setProfileId(pId);
 
                 if (pId) {
-                    await loadFamilies(pId);
+                    await loadFamilies(pId, authUser.email);
                 } else {
                     setMessage('Error: User profile not found. Please relogin.');
                 }
@@ -41,8 +41,8 @@ const Dashboard = () => {
         authenticateAndLoad();
     }, []); // Clean dependencies
 
-    const loadFamilies = async (pId) => {
-        const { families: fetchedFamilies, error } = await fetchUserFamilies(pId);
+    const loadFamilies = async (pId,email) => {
+        const { families: fetchedFamilies, error } = await fetchUserFamilies(pId, email);
         if (error) {
             console.error('Failed to load families:', error);
             setMessage('Failed to load family trees.');
