@@ -6,30 +6,28 @@ import { supabase } from '../config/supabaseClient';
 
 export async function fetchUserFamilies(profileId, userEmail) {
     // 1. Fetch Owned
-    const { data: owned } = await supabase.from('families').select('*').eq('owner_id', profileId);
+    const { data: owned, error: ownedError } = await supabase
+        .from('families')
+        .select('*')
+        .eq('owner_id', profileId);
 
     // 2. Fetch Shared
-    const { data: sharedEntries } = await supabase
+    const { data: sharedEntries, error: sharedError } = await supabase
         .from('family_shares')
-        .select(`
-            families (*)
-        `)
+        .select(`families (*)`)
         .eq('shared_with_email', userEmail.toLowerCase().trim());
+
+    // FIX: Ensure both variables are checked correctly
     if (ownedError || sharedError) {
+        console.error("Fetch Error:", ownedError || sharedError);
         return { families: [], error: ownedError || sharedError };
     }
 
-    // Extract the family objects from the sharing records
     const sharedFamilies = sharedEntries 
-        ? sharedEntries
-            .map(entry => entry.families)
-            .filter(f => f !== null) // This prevents the 'null' from crashing the app
+        ? sharedEntries.map(entry => entry.families).filter(f => f !== null) 
         : [];
-    
-    // Merge both lists and remove any potential duplicates
-    const allFamilies = [...(ownedFamilies || []), ...sharedFamilies];
-    
-    // Filter out any nulls and unique by ID
+
+    const allFamilies = [...(owned || []), ...sharedFamilies];
     const uniqueFamilies = Array.from(new Map(allFamilies.map(f => [f.id, f])).values());
 
     return { families: uniqueFamilies, error: null };
