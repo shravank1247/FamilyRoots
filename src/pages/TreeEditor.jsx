@@ -156,42 +156,49 @@ const TreeEditorRenderer = () => {
         
         const initialEdges = rels.map(rel => {
             const isSpouse = rel.type === 'spouse';
+            const isChild = rel.type === 'child';
 
-    if (isSpouse) {
-        // Logic to detect if the target is to the left or right of the source
-        const sourceNode = people.find(p => p.id === rel.person_a_id);
-        const targetNode = people.find(p => p.id === rel.person_b_id);
-        
-        const isTargetToLeft = targetNode?.position_data?.x < sourceNode?.position_data?.x;
+            // Skip any relationships that aren't spouse or child to keep the tree clean
+            if (!isSpouse && !isChild) return null;
 
-        return {
-            id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
-            source: rel.person_a_id,
-            target: rel.person_b_id,
-            type: 'spouseEdge',
-            // If target is on the left, source starts from Left handle
-            sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
-            targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
-            data: { relId: rel.id, type: 'spouse' }
-        };
-    }
+            if (isSpouse) {
+                // Find the nodes in the 'initialNodes' array we just mapped to get accurate positions
+                const sourceNode = initialNodes.find(n => n.id === rel.person_a_id);
+                const targetNode = initialNodes.find(n => n.id === rel.person_b_id);
+                
+                // Safety check: if nodes aren't found, default to right-side
+                const isTargetToLeft = targetNode && sourceNode ? targetNode.position.x < sourceNode.position.x : false;
 
-    // Standard child logic
-    return {
-        id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
-        source: rel.person_a_id,
-        target: rel.person_b_id,
-        type: 'smoothstep',
-        sourceHandle: 'child-connect',
-        targetHandle: 'parent-connect'
-    };
-        })
+                return {
+                    id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
+                    source: rel.person_a_id,
+                    target: rel.person_b_id,
+                    type: 'spouseEdge',
+                    // Correct handle assignment based on relative position
+                    sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
+                    targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
+                    data: { relId: rel.id, type: 'spouse' }
+                };
+            }
+
+            // Standard child logic
+            return {
+                id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
+                source: rel.person_a_id,
+                target: rel.person_b_id,
+                type: 'smoothstep',
+                borderRadius: 20,
+                markerEnd: { type: 'arrowclosed' }, // Added arrow for clarity
+                sourceHandle: 'child-connect',
+                targetHandle: 'parent-connect'
+            };
+        }).filter(e => e !== null);
 
         setNodes(initialNodes);
         setEdges(initialEdges); 
         setTreeName('Family Tree'); 
-    }
-}, [familyId, navigate, selectedFullNode]);
+        }
+    }, [familyId, navigate, selectedFullNode]);
 
     useEffect(() => { loadData(); }, [loadData]);
 
