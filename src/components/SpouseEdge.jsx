@@ -13,18 +13,16 @@ const SpouseEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
 
     return (
         <>
-            <BaseEdge id={id} path={edgePath} style={{ stroke: '#ff69b4', strokeWidth: 3, opacity: 0.6 }} />
-            
-            {/* EdgeLabelRenderer is specifically designed to handle labels/icons on edges */}
+            <BaseEdge id={id} path={edgePath} style={{ stroke: '#ff69b4', strokeWidth: 3 }} />
             <EdgeLabelRenderer>
                 <div
                     style={{
                         position: 'absolute',
                         transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-                        fontSize: '20px',
                         pointerEvents: 'all',
+                        fontSize: '20px',
+                        zIndex: 1000,
                     }}
-                    className="nodrag nopan"
                 >
                     ❤️
                 </div>
