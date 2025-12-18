@@ -47,6 +47,7 @@ const getPhotoUrl = (path) => {
 const CustomPersonNode = ({ data, selected }) => {
     const { first_name, surname, gender, is_alive, profile_picture_url, generation, bgColor } = data;
     
+    
     // 2. DEFINE INITIALS (Fixes the ReferenceError)
     const initials = (first_name?.[0] || '') + (surname?.[0] || '');
     
@@ -70,13 +71,13 @@ const CustomPersonNode = ({ data, selected }) => {
     return (
         <div 
             className={`custom-person-node ${generationClass} ${selected ? 'selected' : ''}`}
-            style={{ 
-                border: selected ? '5px solid #ff9900' : genderBorder,
-                backgroundColor: bgColor || '#ffffff',
-                borderRadius: '8px',
-                background: '#fff',
-                padding: '10px'
-            }}
+            // style={{ 
+            //     border: selected ? '5px solid #ff9900' : genderBorder,
+            //     backgroundColor: bgColor || '#ffffff',
+            //     borderRadius: '8px',
+            //     background: '#fff',
+            //     padding: '10px'
+            // }}
         >
             <Handle type="target" position={Position.Top} id="parent-connect" />
             
