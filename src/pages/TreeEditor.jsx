@@ -49,7 +49,6 @@ const TreeEditorRenderer = () => {
     const { familyId } = useParams();
     const navigate = useNavigate();
 
-    const reactFlowInstance = useReactFlow();
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
     const [selectedNodeData, setSelectedNodeData] = useState(null);
@@ -59,7 +58,7 @@ const TreeEditorRenderer = () => {
     const [treeName, setTreeName] = useState('Loading...');
     const [saveStatus, setSaveStatus] = useState(null);
     
-    
+    const reactFlowInstance = useReactFlow();
 
     // --- GENERATION COLOR CONFIG ---
     const generationColors = {
@@ -353,7 +352,6 @@ const TreeEditorRenderer = () => {
                         onPaneClick={onPaneClick}
                         nodeTypes={nodeTypes}
                         edgeTypes={edgeTypes} 
-                        onNodeDragStop={onNodeDragStop}
                         fitView
                     >
                         <Controls />
@@ -370,32 +368,6 @@ const TreeEditorRenderer = () => {
         </div>
     );
 };
-
-const onNodeDragStop = useCallback((event, node) => {
-    if (!reactFlowInstance) return;
-    
-    setEdges((eds) => 
-        eds.map((edge) => {
-            // Only care about spouse edges involving the dragged node
-            if (edge.type === 'spouseEdge' && (edge.source === node.id || edge.target === node.id)) {
-                const sourceNode = reactFlowInstance.getNode(edge.source);
-                const targetNode = reactFlowInstance.getNode(edge.target);
-
-                if (sourceNode && targetNode) {
-                    // Check if target is now to the left of the source
-                    const isTargetToLeft = targetNode.position.x < sourceNode.position.x;
-
-                    return {
-                        ...edge,
-                        sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
-                        targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
-                    };
-                }
-            }
-            return edge;
-        })
-    );
-}, [reactFlowInstance, setEdges]);
 
 const TreeEditor = () => (
     <ReactFlowProvider>
