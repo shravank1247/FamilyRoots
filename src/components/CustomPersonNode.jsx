@@ -57,14 +57,12 @@ const CustomPersonNode = ({ data, selected }) => {
     const generationClass = `gen-${(generation || 0) % 5}`;
 
     return (
-        <div className={`custom-person-node gen-${data.generation % 5} gender-${gender} ${selected ? 'selected' : ''}`}>
+        <div className={`custom-person-node ${generationClass} ${genderClass} ${selected ? 'selected' : ''}`}>
             <Handle type="target" position={Position.Top} id="parent-connect" />
             
             <div className="node-main-content">
                 {/* Gender Badge */}
-                <div className={`gender-indicator ${gender}`}>
-                {genderIcon}
-            </div>
+                <div className="gender-badge">{genderIcon}</div>
 
                 <div className="profile-img-viz">
                     {profile_picture_url ? (
