@@ -155,46 +155,34 @@ const TreeEditorRenderer = () => {
             });
             
             const initialEdges = rels.map(rel => {
-                const isSpouse = rel.type === 'spouse';
-                const isChild = rel.type === 'child';
-                if (!isSpouse && !isChild) return null;
-
-                if (isSpouse) {
-                    const sNode = people.find(p => p.id === rel.person_a_id);
-                    const tNode = people.find(p => p.id === rel.person_b_id);
-                    const sX = sNode?.position_data?.x ?? 0;
-                    const tX = tNode?.position_data?.x ?? 0;
-                    const isTargetToLeft = tX < sX;
+                if (rel.type === 'spouse') {
+                    const s = initialNodes.find(n => n.id === rel.person_a_id);
+                    const t = initialNodes.find(n => n.id === rel.person_b_id);
+                    const toLeft = t?.position.x < s?.position.x;
 
                     return {
-                        id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
+                        id: `e-${rel.id}`,
                         source: rel.person_a_id,
                         target: rel.person_b_id,
                         type: 'spouseEdge',
-                        sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
-                        targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
-                        data: { relId: rel.id, type: 'spouse' }
+                        sourceHandle: toLeft ? 'spouse-left' : 'spouse-right',
+                        targetHandle: toLeft ? 'spouse-right' : 'spouse-left',
                     };
                 }
-
                 return {
-                    id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
+                    id: `e-${rel.id}`,
                     source: rel.person_a_id,
                     target: rel.person_b_id,
                     type: 'smoothstep',
-                    borderRadius: 20,
-                    markerEnd: { type: 'arrowclosed' },
                     sourceHandle: 'child-connect',
                     targetHandle: 'parent-connect',
-                    data: { relId: rel.id, type: 'child' }
                 };
-            }).filter(e => e !== null);
+            }).filter(Boolean);
 
             setNodes(initialNodes);
             setEdges(initialEdges);
-            setTreeName('Family Tree'); 
         }
-    }, [familyId, navigate, selectedFullNode]);
+    }, [familyId]);
 
     useEffect(() => { loadData(); }, [loadData]);
 
@@ -349,8 +337,8 @@ const TreeEditorRenderer = () => {
                     <ReactFlow
                         nodes={nodes}
                         edges={edges}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
+                        onNodesChange={(c) => setNodes(n => applyNodeChanges(c, n))}
+                onEdgesChange={(c) => setEdges(e => applyEdgeChanges(c, e))}
                         onConnect={onConnect}
                         onNodeClick={onNodeClick}
                         onPaneClick={onPaneClick}
@@ -361,6 +349,7 @@ const TreeEditorRenderer = () => {
                     >
                         <Controls />
                         <Background color="#aaa" gap={16} />
+                        
                     </ReactFlow>
                 </div>
             </main>
