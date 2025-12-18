@@ -91,28 +91,18 @@ const CustomPersonNode = ({ data, isConnectable, selected }) => {
                 {tagsDisplay && <p className="tag-line">Tags: {tagsDisplay}</p>}
             </div>
                         {/* Top: For Children to connect to Parents */}
-            <Handle type="target" position={Position.Top} id="parent-connect" />
+            
+            {/* 1. Top: For incoming child links */}
+<Handle type="target" position={Position.Top} id="parent-connect" />
 
-            {/* Bottom: For Parents to connect to Children */}
-            <Handle type="source" position={Position.Bottom} id="child-connect" />
+{/* 2. Bottom: For outgoing child links */}
+<Handle type="source" position={Position.Bottom} id="child-connect" />
 
-            {/* Left: Specifically for Spouse on the Left */}
-                {/* spouse-left handle on the LEFT side */}
-{/* spouse-left handle on the LEFT side */}
-<Handle 
-    type="bidirectional" 
-    position={Position.Left} 
-    id="spouse-left" 
-    style={{ top: '50%', background: '#ff69b4', width: '10px', height: '10px' }} 
-/>
+{/* 3. Left: For spouse links on the left */}
+<Handle type="bidirectional" position={Position.Left} id="spouse-left" style={{ top: '50%' }} />
 
-{/* spouse-right handle on the RIGHT side */}
-<Handle 
-    type="bidirectional" 
-    position={Position.Right} 
-    id="spouse-right" 
-    style={{ top: '50%', background: '#ff69b4', width: '10px', height: '10px' }} 
-/>
+{/* 4. Right: For spouse links on the right */}
+<Handle type="bidirectional" position={Position.Right} id="spouse-right" style={{ top: '50%' }} />
         </div>
     );
 };
