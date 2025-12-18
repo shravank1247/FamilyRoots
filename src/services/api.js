@@ -133,6 +133,15 @@ export async function saveProfilePictureUrl(personId, url) {
     return updatePerson(personId, personData);
 }
 
+export const fetchFamilyById = async (familyId) => {
+    const { data, error } = await supabase
+        .from('families')
+        .select('name')
+        .eq('id', familyId)
+        .single();
+    return { family: data, error };
+};
+
 export async function uploadProfilePicture(file, familyId, personId) {
     if (!file) return { path: null, error: null };
 

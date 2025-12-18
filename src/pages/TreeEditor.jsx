@@ -1,5 +1,5 @@
 // src/pages/TreeEditor.jsx
-
+import { supabase } from '../services/supabaseClient';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactFlow, { 
@@ -23,7 +23,8 @@ import {
     createPerson,
     createRelationships,
     deletePerson,
-    updatePerson
+    updatePerson,
+    fetchFamilyById
 } from '../services/api'; 
 
 import PropertiesSidebar from '../components/PropertiesSidebar';
@@ -140,17 +141,12 @@ const defaultColor = '#D3D3D3';
         const rels = relationships || []; 
         
 
-        // 1. Fetch the Family Name
-    const { data: familyData, error: familyError } = await supabase
-        .from('families')
-        .select('name')
-        .eq('id', familyId)
-        .single();
-
-    if (!familyError && familyData) {
-        setTreeName(familyData.name); // Updates the title from "Loading..." to the actual name
+        // Fetch Family Name using the service function
+    const { family, error: familyError } = await fetchFamilyById(familyId);
+    if (!familyError && family) {
+        setTreeName(family.name);
     } else {
-        setTreeName('Family Tree'); // Fallback if name not found
+        setTreeName('Family Tree');
     }
 
 
