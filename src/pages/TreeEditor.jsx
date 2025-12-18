@@ -22,8 +22,7 @@ import {
     fetchRelationshipsByPerson,
     createPerson,
     createRelationships,
-    deletePerson,
-    updatePerson
+    deletePerson
 } from '../services/api'; 
 
 import PropertiesSidebar from '../components/PropertiesSidebar';
@@ -303,35 +302,12 @@ const TreeEditorRenderer = () => {
         setSelectedNodeData(null);
     }, [selectedFullNode, loadData]);
 
-    const handleSidebarSave = useCallback(async (updatedPerson) => {
-    // 1. Persist to Database (Ensure your API has an updatePerson function)
-    const { error } = await updatePerson(updatedPerson.id, {
-        first_name: updatedPerson.first_name,
-        surname: updatedPerson.surname,
-        gender: updatedPerson.gender, // Ensure gender is passed
-        birth_date: updatedPerson.birth_date,
-        is_alive: updatedPerson.is_alive
-    });
-
-    if (error) {
-        console.error("Update failed:", error.message);
-        return;
-    }
-
-    // 2. Update local state so the UI reflects the change immediately
-    setNodes((nds) => 
-        nds.map((node) => 
-            node.id === updatedPerson.id 
-                ? { ...node, data: { ...node.data, ...updatedPerson } } 
-                : node
-        )
-    );
-    
-    setSelectedNodeData(updatedPerson); 
-    console.log("Gender saved successfully:", updatedPerson.gender);
-    setSaveStatus('Changes Saved!');
-    setTimeout(() => setSaveStatus(null), 2000);
-}, [setNodes, setSelectedNodeData]);
+    const handleSidebarSave = useCallback((updatedPerson) => {
+        setNodes(nds => nds.map(node => 
+            node.id === updatedPerson.id ? { ...node, data: { ...node.data, ...updatedPerson } } : node
+        ));
+        setSelectedNodeData(updatedPerson); 
+    }, []);
 
     return (
         <div className="tree-editor-wrapper">
@@ -364,7 +340,6 @@ const TreeEditorRenderer = () => {
                     >
                         <Controls />
                         <Background color="#aaa" gap={16} />
-                        
                     </ReactFlow>
                 </div>
             </main>
