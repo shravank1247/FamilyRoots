@@ -49,6 +49,7 @@ const TreeEditorRenderer = () => {
     const { familyId } = useParams();
     const navigate = useNavigate();
 
+    const reactFlowInstance = useReactFlow();
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
     const [selectedNodeData, setSelectedNodeData] = useState(null);
@@ -57,16 +58,40 @@ const TreeEditorRenderer = () => {
     const [isLayingOut, setIsLayingOut] = useState(false);
     const [treeName, setTreeName] = useState('Loading...');
     const [saveStatus, setSaveStatus] = useState(null);
-    
-    const reactFlowInstance = useReactFlow();
+
+    // --- GENERATION COLOR CONFIG ---
+    const generationColors = {
+        0: '#FFD700', 
+        1: '#87CEEB', 
+        2: '#98FB98', 
+        3: '#DDA0DD', 
+        4: '#F08080', 
+    };
+    const defaultColor = '#D3D3D3';
 
     // --- HELPERS ---
-
-    const getParentIds = useCallback((personId) => {
-        return edges
-            .filter((e) => e.target === personId && e.type !== 'spouseEdge')
-            .map(e => e.source);
-    }, [edges]);
+    const assignLevels = (people, relationships) => {
+        const levelMap = {};
+        const edgeList = relationships || [];
+        const hasParent = new Set(edgeList.filter(r => r.type === 'child').map(r => r.person_b_id));
+        const roots = people.filter(p => !hasParent.has(p.id));
+        let queue = roots.map(r => ({ id: r.id, level: 0 }));
+        
+        while (queue.length > 0) {
+            const { id, level } = queue.shift();
+            if (!(id in levelMap) || level > levelMap[id]) {
+                levelMap[id] = level;
+            }
+            const children = edgeList
+                .filter(r => r.person_a_id === id && r.type === 'child')
+                .map(r => r.person_b_id);
+                
+            children.forEach(childId => {
+                queue.push({ id: childId, level: level + 1 });
+            });
+        }
+        return levelMap;
+    };
 
     const getSpouseId = useCallback((personId) => {
         const spouseEdge = edges.find(
@@ -76,92 +101,105 @@ const TreeEditorRenderer = () => {
         return spouseEdge.source === personId ? spouseEdge.target : spouseEdge.source;
     }, [edges]); 
 
-    // --- DATA LOADING ---
-
     const loadData = useCallback(async () => {
-    const authUser = await checkAuth();
-    if (!authUser) { navigate('/login'); return; }
-    if (!familyId) return;
+        const authUser = await checkAuth();
+        if (!authUser) { navigate('/login'); return; }
+        if (!familyId) return;
 
-    const { people } = await fetchPeopleByFamily(familyId); 
+        const { people } = await fetchPeopleByFamily(familyId); 
+        const { relationships } = await fetchRelationshipsByPerson(familyId);
+        const rels = relationships || []; 
+        
+        const levelMap = assignLevels(people, rels);
 
-    // --- NEW LOGIC: Initialize empty tree with a default node ---
-    if (people && people.length === 0) {
-        console.log("Empty tree detected. Creating default root node...");
-        const defaultPerson = {
-            first_name: "Root",
-            last_name: "Person",
-            is_alive: true,
-            position_data: { x: 250, y: 150 } // Center the first node
-        };
-        
-        const { person: newRoot, error } = await createPerson(defaultPerson, familyId);
-        
-        if (error) {
-            console.error("Failed to create default node:", error);
-            return;
+        if (people && people.length > 0) {
+            const initialNodes = people.map((p, index) => {
+                const pos = p.position_data || { x: index * 250, y: Math.floor(index / 3) * 150 };
+                const level = levelMap[p.id] || 0;
+                
+                return {
+                    id: p.id,
+                    type: 'personNode',
+                    data: { 
+                        ...p, 
+                        generation: level,
+                        bgColor: generationColors[level % 5] || defaultColor 
+                    },
+                    position: pos,
+                    selected: selectedFullNode?.id === p.id,
+                    style: selectedFullNode?.id === p.id ? { border: '5px solid #ff9900' } : {}
+                };
+            });
+            
+            const initialEdges = rels.map(rel => {
+                const isSpouse = rel.type === 'spouse';
+                const isChild = rel.type === 'child';
+                if (!isSpouse && !isChild) return null;
+
+                if (isSpouse) {
+                    const sNode = people.find(p => p.id === rel.person_a_id);
+                    const tNode = people.find(p => p.id === rel.person_b_id);
+                    const sX = sNode?.position_data?.x ?? 0;
+                    const tX = tNode?.position_data?.x ?? 0;
+                    const isTargetToLeft = tX < sX;
+
+                    return {
+                        id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
+                        source: rel.person_a_id,
+                        target: rel.person_b_id,
+                        type: 'spouseEdge',
+                        sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
+                        targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
+                        data: { relId: rel.id, type: 'spouse' }
+                    };
+                }
+
+                return {
+                    id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
+                    source: rel.person_a_id,
+                    target: rel.person_b_id,
+                    type: 'smoothstep',
+                    borderRadius: 20,
+                    markerEnd: { type: 'arrowclosed' },
+                    sourceHandle: 'child-connect',
+                    targetHandle: 'parent-connect',
+                    data: { relId: rel.id, type: 'child' }
+                };
+            }).filter(e => e !== null);
+
+            setNodes(initialNodes);
+            setEdges(initialEdges);
+            setTreeName('Family Tree'); 
         }
-
-        // Add the new root node to state immediately
-        const rootNode = {
-            id: newRoot.id,
-            type: 'personNode',
-            data: { ...newRoot, generation: 0 },
-            position: newRoot.position_data,
-        };
-        
-        setNodes([rootNode]);
-        setEdges([]);
-        setTreeName('Family Tree');
-        return; // Exit early as we've initialized the tree
-    }
-
-
-    const { relationships } = await fetchRelationshipsByPerson(familyId);
-    const rels = relationships || []; 
-    
-    if (people && people.length > 0) {
-        const initialNodes = people.map((p, index) => {
-            const pos = p.position_data || { x: index * 250, y: Math.floor(index / 3) * 150 };
-            return {
-                id: p.id,
-                type: 'personNode',
-                data: { ...p, generation: Math.floor(pos.y / 250) }, 
-                position: pos,
-            };
-        });
-        
-        const initialEdges = rels
-    .filter(rel => ['child', 'spouse', 'parent', 'sibling'].includes(rel.type))
-    .map(rel => {
-        const isSpouse = rel.type === 'spouse';
-        const sId = rel.person_a_id; 
-        const tId = rel.person_b_id;
-
-        return {
-            id: `e-${sId}-${tId}-${rel.type}`,
-            source: sId,
-            target: tId,
-            // CHANGE: Use 'smoothstep' for elbow links
-            type: isSpouse ? 'spouseEdge' : 'smoothstep', 
-            borderRadius: 20, // Rounds the corners of the elbow
-            markerEnd: isSpouse ? undefined : { type: 'arrowclosed' },
-            sourceHandle: isSpouse ? 'spouse-right' : 'child-connect',
-            targetHandle: isSpouse ? 'spouse-left' : null,
-            data: { relId: rel.id, type: rel.type }
-        };
-    }).filter(e => e !== null);
-
-        setNodes(initialNodes);
-        setEdges(initialEdges); 
-        setTreeName('Family Tree'); 
-    }
-}, [familyId, navigate, createPerson]);
+    }, [familyId, navigate, selectedFullNode]);
 
     useEffect(() => { loadData(); }, [loadData]);
 
-    // --- EVENT HANDLERS ---
+    // --- NEW INTELLIGENT DRAG HANDLER ---
+    const onNodeDragStop = useCallback((event, node) => {
+        if (!reactFlowInstance) return;
+        
+        setEdges((eds) => 
+            eds.map((edge) => {
+                if (edge.type === 'spouseEdge' && (edge.source === node.id || edge.target === node.id)) {
+                    const sourceNode = reactFlowInstance.getNode(edge.source);
+                    const targetNode = reactFlowInstance.getNode(edge.target);
 
+                    if (sourceNode && targetNode) {
+                        const isTargetToLeft = targetNode.position.x < sourceNode.position.x;
+                        return {
+                            ...edge,
+                            sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
+                            targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
+                        };
+                    }
+                }
+                return edge;
+            })
+        );
+    }, [reactFlowInstance, setEdges]);
+
+    // --- OTHER HANDLERS ---
     const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
     const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
     const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
@@ -172,153 +210,55 @@ const TreeEditorRenderer = () => {
         setNodes((nds) => nds.map((n) => ({
             ...n,
             selected: n.id === node.id,
-            style: n.id === node.id ? { border: '5px solid #ff9900' } : {}
+            style: n.id === node.id ? { border: '5px solid #ff9900' } : { border: 'none' }
         })));
     }, []);
-    
+
     const onPaneClick = useCallback(() => {
         setSelectedNodeData(null);
         setSelectedFullNode(null);
-        setNodes((nds) => nds.map((n) => ({ ...n, selected: false, style: {} })));
+        setNodes((nds) => nds.map((n) => ({ ...n, selected: false })));
     }, []);
 
-    const onLayout = useCallback(() => {
-        if (nodes.length === 0) return;
-        setIsLayingOut(true);
-        const layoutedNodes = getLayoutedElements(nodes, edges, 'TB');
-        setNodes(layoutedNodes);
-        setTimeout(() => {
-            reactFlowInstance.fitView({ padding: 0.2 });
-            setIsLayingOut(false);
-        }, 10);
-    }, [nodes, edges, reactFlowInstance]);
-
-    // --- QUICK ADD LOGIC ---
-
     const onAddNode = useCallback(async (parentId, relationshipType) => {
-    const parentNode = nodes.find(n => n.id === parentId);
-    if (!parentNode) return;
+        const parentNode = nodes.find(n => n.id === parentId);
+        if (!parentNode) return;
 
-    const offset = 250; 
-    const { x, y } = parentNode.position;
-    const spouseId = getSpouseId(parentId);
-    const spouseNode = spouseId ? nodes.find(n => n.id === spouseId) : null;
-    
-    if (relationshipType === 'child' && !spouseNode) {
-        if (!window.confirm("No spouse found. Create child with single parent?")) return;
-    }
-
-    let newPosition;
-    if (relationshipType === 'child') {
-        newPosition = { x: spouseNode ? (x + spouseNode.position.x) / 2 : x, y: y + offset };
-    } else if (relationshipType === 'spouse') {
-        newPosition = { x: x + offset, y: y }; // Place spouse to the right
-    } else {
-        newPosition = { x: x - offset, y: y + offset };
-    }
-    
-    const { person: newPerson, error } = await createPerson({
-        first_name: `New ${relationshipType}`,
-        is_alive: true,
-    }, familyId);
-
-    if (error) return;
-
-    const newNode = {
-        id: newPerson.id,
-        type: 'personNode',
-        data: newPerson,
-        position: newPosition,
-    };
-    
-    const dbRelationships = [];
-    const localEdges = [];
-    let junctionNode = null;
-
-    if (relationshipType === 'child') {
-        const junctionId = spouseId ? `junc-${parentId}-${spouseId}` : parentId;
+        const spouseId = getSpouseId(parentId);
+        const { x, y } = parentNode.position;
+        const horizontalOffset = 300; 
         
-        if (spouseId) {
-            // Ensure visual junction exists
-            junctionNode = { 
-                id: junctionId,
-                position: { x: (x + spouseNode.position.x) / 2 + 40, y: y + 80 },
-                type: 'junction',
-                data: { label: '' },
-                style: { width: 1, height: 1 }
-            };
-        }
-
-        // Link from Junction (or single parent) to Child
-        localEdges.push({
-            id: `e-${junctionId}-${newNode.id}`,
-            source: junctionId,
-            target: newNode.id,
-            type: 'smoothstep',
-            sourceHandle: 'child-connect', // Ensure this handle exists on your junction/node
-            markerEnd: { type: 'arrowclosed' }
-        });
-
-        // Save relationship to BOTH parents in DB
-        dbRelationships.push({ family_id: familyId, person_a_id: parentId, person_b_id: newNode.id, type: 'child' });
-        if (spouseId) {
-            dbRelationships.push({ family_id: familyId, person_a_id: spouseId, person_b_id: newNode.id, type: 'child' });
-        }
-    } 
-    else if (relationshipType === 'spouse') {
-        // VISUAL: Link side-to-side
-        localEdges.push({
-            id: `e-${parentId}-${newNode.id}-spouse`,
-            source: parentId,
-            target: newNode.id,
-            type: 'spouseEdge',
-            sourceHandle: 'spouse-right', // Force side handle
-            targetHandle: 'spouse-left'   // Force side handle
-        });
-        dbRelationships.push({ family_id: familyId, person_a_id: parentId, person_b_id: newNode.id, type: 'spouse' });
-    }
-    else if (relationshipType === 'sibling') {
-        const parentIds = getParentIds(parentId);
-        if (parentIds.length > 0) {
-            parentIds.forEach(pId => {
-                localEdges.push({ id: `e-${pId}-to-${newNode.id}`, source: pId, target: newNode.id, type: 'default', markerEnd: { type: 'arrowclosed' } });
-                dbRelationships.push({ family_id: familyId, person_a_id: pId, person_b_id: newNode.id, type: 'child' });
-            });
+        let newPosition;
+        if (relationshipType === 'spouse') {
+            newPosition = { x: x - horizontalOffset, y: y }; 
         } else {
-            localEdges.push({ id: `e-${parentId}-to-${newNode.id}`, source: parentId, target: newNode.id, type: 'default', markerEnd: { type: 'arrowclosed' } });
-            dbRelationships.push({ family_id: familyId, person_a_id: parentId, person_b_id: newNode.id, type: 'sibling' });
+            newPosition = { x: x, y: y + 250 }; 
         }
-    } else if (relationshipType === 'parent') {
-        localEdges.push({ id: `e-${newNode.id}-to-${parentId}`, source: newNode.id, target: parentId, type: 'default', markerEnd: { type: 'arrowclosed' } });
-        dbRelationships.push({ family_id: familyId, person_a_id: newNode.id, person_b_id: parentId, type: 'child' });
-    }
 
-    if (dbRelationships.length > 0) await createRelationships(dbRelationships);
+        const { person: newPerson, error } = await createPerson({
+            first_name: `New ${relationshipType}`,
+            is_alive: true,
+            position_data: newPosition
+        }, familyId);
 
-    setNodes((nds) => [...nds, newNode, ...(junctionNode ? [junctionNode] : [])]); 
-    setEdges((eds) => [...eds, ...localEdges]);
-    setSelectedFullNode(newNode);
-    setSelectedNodeData(newPerson);
-}, [nodes, edges, familyId, getSpouseId, getParentIds]);
+        if (error) return;
 
-    // --- SIDEBAR & ACTIONS ---
+        const dbRelationships = [];
+        if (relationshipType === 'child') {
+            dbRelationships.push({ family_id: familyId, person_a_id: parentId, person_b_id: newPerson.id, type: 'child' });
+            if (spouseId) {
+                dbRelationships.push({ family_id: familyId, person_a_id: spouseId, person_b_id: newPerson.id, type: 'child' });
+            }
+        } else if (relationshipType === 'spouse') {
+            dbRelationships.push({ family_id: familyId, person_a_id: parentId, person_b_id: newPerson.id, type: 'spouse' });
+        }
 
-    const handleDeleteSelected = useCallback(async () => {
-        if (!selectedFullNode) return;
-        if (!window.confirm(`Delete ${selectedFullNode.data.first_name}?`)) return;
-        await deletePerson(selectedFullNode.id);
+        if (dbRelationships.length > 0) {
+            await createRelationships(dbRelationships);
+        }
+
         await loadData();
-        setSelectedNodeData(null);
-        setSelectedFullNode(null);
-    }, [selectedFullNode, loadData]);
-
-    const handleSidebarSave = useCallback(async (updatedPerson) => {
-    // Only update LOCAL data to prevent position jumping
-    setNodes(nds => nds.map(node => 
-        node.id === updatedPerson.id ? { ...node, data: updatedPerson } : node
-    ));
-    setSelectedNodeData(updatedPerson); 
-}, []);
+    }, [nodes, familyId, getSpouseId, loadData]);
 
     const handleSaveLayout = async () => {
         setSaveStatus('Saving...');
@@ -332,6 +272,21 @@ const TreeEditorRenderer = () => {
         setTimeout(() => setSaveStatus(null), 2000);
     };
 
+    const handleDeleteSelected = useCallback(async () => {
+        if (!selectedFullNode) return;
+        if (!window.confirm(`Delete ${selectedFullNode.data.first_name}?`)) return;
+        await deletePerson(selectedFullNode.id);
+        await loadData();
+        setSelectedNodeData(null);
+    }, [selectedFullNode, loadData]);
+
+    const handleSidebarSave = useCallback((updatedPerson) => {
+        setNodes(nds => nds.map(node => 
+            node.id === updatedPerson.id ? { ...node, data: { ...node.data, ...updatedPerson } } : node
+        ));
+        setSelectedNodeData(updatedPerson); 
+    }, []);
+
     return (
         <div className="tree-editor-wrapper">
             <main className="main-content-canvas">
@@ -342,9 +297,8 @@ const TreeEditorRenderer = () => {
                             {saveStatus || '💾 Save Layout'}
                         </button>
                         <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
-                        <button className="secondary-btn" onClick={onLayout}>✨ Auto Arrange</button>
                         <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
-                        <a href="/dashboard" className="secondary-btn">← Back to Dashboard</a>
+                        <a href="/dashboard" className="secondary-btn">← Back</a>
                     </div>
                 </header>
                 <div className="react-flow-container">
@@ -356,6 +310,7 @@ const TreeEditorRenderer = () => {
                         onConnect={onConnect}
                         onNodeClick={onNodeClick}
                         onPaneClick={onPaneClick}
+                        onNodeDragStop={onNodeDragStop}
                         nodeTypes={nodeTypes}
                         edgeTypes={edgeTypes} 
                         fitView
