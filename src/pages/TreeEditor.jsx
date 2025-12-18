@@ -22,7 +22,8 @@ import {
     fetchRelationshipsByPerson,
     createPerson,
     createRelationships,
-    deletePerson
+    deletePerson,
+    updatePerson
 } from '../services/api'; 
 
 import PropertiesSidebar from '../components/PropertiesSidebar';
@@ -302,12 +303,47 @@ const TreeEditorRenderer = () => {
         setSelectedNodeData(null);
     }, [selectedFullNode, loadData]);
 
-    const handleSidebarSave = useCallback((updatedPerson) => {
-        setNodes(nds => nds.map(node => 
-            node.id === updatedPerson.id ? { ...node, data: { ...node.data, ...updatedPerson } } : node
-        ));
-        setSelectedNodeData(updatedPerson); 
-    }, []);
+    const handleSidebarSave = useCallback(async (updatedPerson) => {
+    if (!updatedPersonData || !updatedPersonData.id) return;
+
+    // 1. Prepare clean data for the database
+    const dbUpdates = {
+        first_name: updatedPersonData.first_name,
+        surname: updatedPersonData.surname,
+        gender: updatedPersonData.gender,
+        is_alive: updatedPersonData.is_alive,
+        birth_date: updatedPersonData.birth_date
+    };
+
+    // 2. Persist to Supabase
+    const { error } = await updatePerson(updatedPersonData.id, dbUpdates);
+
+    if (error) {
+        console.error("Database update failed:", error);
+        return;
+    }
+
+    // 2. Update local state so the UI reflects the change immediately
+    setNodes((nds) => 
+        nds.map((node) => {
+            if (node.id === updatedPersonData.id) {
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        ...updatedPersonData // Updates gender, name, etc.
+                    }
+                };
+            }
+            return node;
+        })
+    );
+    
+    setSelectedNodeData(updatedPersonData);
+    console.log("Gender saved successfully:", updatedPerson.gender);
+    setSaveStatus('Changes Saved!');
+    setTimeout(() => setSaveStatus(null), 2000);
+}, [setNodes, setSelectedNodeData]);
 
     return (
         <div className="tree-editor-wrapper">
@@ -340,6 +376,7 @@ const TreeEditorRenderer = () => {
                     >
                         <Controls />
                         <Background color="#aaa" gap={16} />
+                        
                     </ReactFlow>
                 </div>
             </main>
