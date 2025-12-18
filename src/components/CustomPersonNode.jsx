@@ -90,20 +90,27 @@ const CustomPersonNode = ({ data, isConnectable, selected }) => {
                 {anniversaryYear && <p className="detail-line">Anniv: {anniversaryYear}</p>}
                 {tagsDisplay && <p className="tag-line">Tags: {tagsDisplay}</p>}
             </div>
+                        {/* Top: For Children to connect to Parents */}
+            <Handle type="target" position={Position.Top} id="parent-connect" />
 
-            <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} id="child-connect" />
+            {/* Bottom: For Parents to connect to Children */}
+            <Handle type="source" position={Position.Bottom} id="child-connect" />
+
+            {/* Left: Specifically for Spouse on the Left */}
             <Handle 
-    type="bidirectional" // or "target"
-    position={Position.Left} 
-    id="spouse-left" 
-    style={{ top: '50%' }} 
-/>
+                type="bidirectional" 
+                position={Position.Left} 
+                id="spouse-left" 
+                style={{ top: '50%', background: '#ff69b4' }} 
+            />
+
+            {/* Right: Specifically for Spouse on the Right */}
             <Handle 
-    type="bidirectional" // or "source"
-    position={Position.Right} 
-    id="spouse-right" 
-    style={{ top: '50%' }} 
-/>
+                type="bidirectional" 
+                position={Position.Right} 
+                id="spouse-right" 
+                style={{ top: '50%', background: '#ff69b4' }} 
+            />
         </div>
     );
 };

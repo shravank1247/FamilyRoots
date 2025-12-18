@@ -161,14 +161,13 @@ const TreeEditorRenderer = () => {
             if (!isSpouse && !isChild) return null;
 
             if (isSpouse) {
-                // Find positions from initialNodes (UI) or fallback to people (DB)
-                const sNode = initialNodes.find(n => n.id === rel.person_a_id) || people.find(p => p.id === rel.person_a_id);
-                const tNode = initialNodes.find(n => n.id === rel.person_b_id) || people.find(p => p.id === rel.person_b_id);
+                const sNode = people.find(p => p.id === rel.person_a_id);
+                const tNode = people.find(p => p.id === rel.person_b_id);
                 
-                // Get X coordinates from either position or position_data
-                const sX = sNode?.position?.x ?? sNode?.position_data?.x ?? 0;
-                const tX = tNode?.position?.x ?? tNode?.position_data?.x ?? 0;
+                const sX = sNode?.position_data?.x ?? 0;
+                const tX = tNode?.position_data?.x ?? 0;
 
+                // If Target is to the left of Source
                 const isTargetToLeft = tX < sX;
 
                 return {
@@ -176,13 +175,14 @@ const TreeEditorRenderer = () => {
                     source: rel.person_a_id,
                     target: rel.person_b_id,
                     type: 'spouseEdge',
-                    // If target is on the left, source starts from its left side
+                    // If spouse is on the left: Source uses Left handle, Target uses Right handle
                     sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
                     targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
                     data: { relId: rel.id, type: 'spouse' }
                 };
             }
 
+            // Standard child logic connecting Top to Bottom
             return {
                 id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
                 source: rel.person_a_id,
