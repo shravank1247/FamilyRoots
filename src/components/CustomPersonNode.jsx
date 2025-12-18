@@ -50,6 +50,13 @@ const CustomPersonNode = ({ data, selected }) => {
     // 2. DEFINE INITIALS (Fixes the ReferenceError)
     const initials = (first_name?.[0] || '') + (surname?.[0] || '');
     
+    const birthYear = data.birth_date ? new Date(data.birth_date).getFullYear() : 'N/A';
+    // Use data.anniversary_date directly from the API response (if it exists)
+    const anniversaryYear = data.anniversary_date ? new Date(data.anniversary_date).getFullYear() : null; 
+
+     // Tags processing
+    const tagsDisplay = data.tags && Array.isArray(data.tags) && data.tags.length > 0 ? data.tags.join(', ') : null;
+    
     // 3. Gender Logic
     const genderIcon = gender === 'male' ? '♂️' : gender === 'female' ? '♀️' : '👤';
     const genderBorder = gender === 'male' ? '3px solid #1890ff' : 
@@ -92,6 +99,19 @@ const CustomPersonNode = ({ data, selected }) => {
                             <span className="surname-text" style={{ marginLeft: '4px' }}>{surname || ''}</span>
                         </div>
                     </div>
+                    <p className="detail-line">
+                    DOB: {birthYear} ({age} yrs)
+                </p>
+                {anniversaryYear && (
+                    <p className="detail-line">
+                        Anniv: {anniversaryYear}
+                    </p>
+                )}
+                {tagsDisplay && (
+                    <p className="tag-line">
+                        Tags: {tagsDisplay}
+                    </p>
+                )}
                 </div>
             </div>
 
