@@ -22,7 +22,8 @@ import {
     fetchRelationshipsByPerson,
     createPerson,
     createRelationships,
-    deletePerson
+    deletePerson,
+    updatePerson
 } from '../services/api'; 
 
 import PropertiesSidebar from '../components/PropertiesSidebar';
@@ -307,13 +308,13 @@ const TreeEditorRenderer = () => {
     const { error } = await updatePerson(updatedPerson.id, {
         first_name: updatedPerson.first_name,
         surname: updatedPerson.surname,
-        gender: updatedPerson.gender, // Ensure this field is sent
+        gender: updatedPerson.gender, // Ensure gender is passed
         birth_date: updatedPerson.birth_date,
         is_alive: updatedPerson.is_alive
     });
 
     if (error) {
-        alert("Failed to save: " + error.message);
+        console.error("Update failed:", error.message);
         return;
     }
 
@@ -327,7 +328,7 @@ const TreeEditorRenderer = () => {
     setSelectedNodeData(updatedPerson); 
     setSaveStatus('Changes Saved!');
     setTimeout(() => setSaveStatus(null), 2000);
-}, [updatePerson]);
+}, [setNodes, setSelectedNodeData]);
 
     return (
         <div className="tree-editor-wrapper">

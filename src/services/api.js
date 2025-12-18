@@ -172,16 +172,22 @@ export async function uploadProfilePicture(file, familyId, personId) {
     }
 }
 
-export async function updatePerson(personId, personData) {
-    // Note: We assume position_data might be passed here from the sidebar.
-    const { data: updatedPerson, error } = await supabase
-        .from('people')
-        .update(personData)
-        .eq('id', personId)
-        .select()
-        .single();
-    return { person: updatedPerson, error };
-}
+export const updatePerson = async (id, updates) => {
+    try {
+        const { data, error } = await supabase
+            .from('people')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return { person: data, error: null };
+    } catch (error) {
+        console.error('Error updating person:', error);
+        return { person: null, error };
+    }
+};
 
 /**
  * Inserts multiple relationship records in a single batch operation.
