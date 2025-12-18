@@ -157,11 +157,10 @@ const TreeEditorRenderer = () => {
     const { relationships } = await fetchRelationshipsByPerson(familyId);
     const rels = relationships || []; 
     
-    // 1. Calculate Generations for color coding
     const levelMap = assignLevels(people, rels);
 
     if (people && people.length > 0) {
-        // 2. Map People to Nodes FIRST so we can use them for Edge logic
+        // STEP 1: Map Nodes FIRST to get final UI positions
         const initialNodes = people.map((p, index) => {
             const pos = p.position_data || { x: index * 250, y: Math.floor(index / 3) * 150 };
             const level = levelMap[p.id] || 0;
@@ -180,50 +179,50 @@ const TreeEditorRenderer = () => {
             };
         });
         
-        // 3. Map Relationships to Edges
-        // Inside loadData in TreeEditor.jsx
-const initialEdges = rels.map(rel => {
-    const isSpouse = rel.type === 'spouse';
-    const isChild = rel.type === 'child';
+        // STEP 2: Map Edges using initialNodes for accurate position comparison
+        const initialEdges = rels.map(rel => {
+            const isSpouse = rel.type === 'spouse';
+            const isChild = rel.type === 'child';
 
-    if (!isSpouse && !isChild) return null;
+            if (!isSpouse && !isChild) return null;
 
-    if (isSpouse) {
-        // Compare X positions to decide Left vs Right connection
-        const sNode = people.find(p => p.id === rel.person_a_id);
-        const tNode = people.find(p => p.id === rel.person_b_id);
-        const isTargetToLeft = (tNode?.position_data?.x ?? 0) < (sNode?.position_data?.x ?? 0);
+            if (isSpouse) {
+                const sNode = initialNodes.find(n => n.id === rel.person_a_id);
+                const tNode = initialNodes.find(n => n.id === rel.person_b_id);
+                
+                // Compare the actual mapped X positions
+                const isTargetToLeft = (tNode?.position?.x ?? 0) < (sNode?.position?.x ?? 0);
 
-        return {
-            id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
-            source: rel.person_a_id,
-            target: rel.person_b_id,
-            type: 'spouseEdge', // Must match edgeTypes key
-            // Handshake: Source(Right) -> Target(Left) or vice versa
-            sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
-            targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
-            data: { relId: rel.id, type: 'spouse' }
-        };
-    }
-
-    return {
-        id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
-        source: rel.person_a_id,
-        target: rel.person_b_id,
-        type: 'smoothstep',
-        borderRadius: 20,
-        markerEnd: { type: 'arrowclosed' },
-        sourceHandle: 'child-connect',
-        targetHandle: 'parent-connect',
-        data: { relId: rel.id, type: 'child' }
-    };
-}).filter(e => e !== null);
-
-                setNodes(initialNodes);
-                setEdges(initialEdges);
-                setTreeName('Family Tree'); 
+                return {
+                    id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
+                    source: rel.person_a_id,
+                    target: rel.person_b_id,
+                    type: 'spouseEdge',
+                    // Correct handshake logic
+                    sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
+                    targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
+                    data: { relId: rel.id, type: 'spouse' }
+                };
             }
-        }, [familyId, navigate, selectedFullNode]);
+
+            return {
+                id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
+                source: rel.person_a_id,
+                target: rel.person_b_id,
+                type: 'smoothstep',
+                borderRadius: 20,
+                markerEnd: { type: 'arrowclosed' },
+                sourceHandle: 'child-connect',
+                targetHandle: 'parent-connect',
+                data: { relId: rel.id, type: 'child' }
+            };
+        }).filter(e => e !== null);
+
+        setNodes(initialNodes);
+        setEdges(initialEdges);
+        setTreeName('Family Tree'); 
+    }
+}, [familyId, navigate, selectedFullNode]);
 
     
 
@@ -400,6 +399,7 @@ const initialEdges = rels.map(rel => {
                         onConnect={onConnect}
                         onNodeClick={onNodeClick}
                         onPaneClick={onPaneClick}
+                        onNodeDragStop={onNodeDragStop} // <--- ADD THIS LINE
                         nodeTypes={nodeTypes}
                         edgeTypes={edgeTypes} 
                         fitView
