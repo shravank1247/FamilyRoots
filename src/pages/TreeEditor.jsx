@@ -1,5 +1,5 @@
 // src/pages/TreeEditor.jsx
-import { supabase } from '../services/supabaseClient';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactFlow, { 
@@ -143,6 +143,7 @@ const defaultColor = '#D3D3D3';
 
         // Fetch Family Name using the service function
     const { family, error: familyError } = await fetchFamilyById(familyId);
+    
     if (!familyError && family) {
         setTreeName(family.name);
     } else {
