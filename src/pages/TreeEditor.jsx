@@ -161,25 +161,28 @@ const TreeEditorRenderer = () => {
             if (!isSpouse && !isChild) return null;
 
             if (isSpouse) {
-                // Find nodes in the newly created initialNodes array
-                const sourceNode = initialNodes.find(n => n.id === rel.person_a_id);
-                const targetNode = initialNodes.find(n => n.id === rel.person_b_id);
+                // Find positions from initialNodes (UI) or fallback to people (DB)
+                const sNode = initialNodes.find(n => n.id === rel.person_a_id) || people.find(p => p.id === rel.person_a_id);
+                const tNode = initialNodes.find(n => n.id === rel.person_b_id) || people.find(p => p.id === rel.person_b_id);
                 
-                // If target is to the left of source, swap handles
-                const isTargetToLeft = targetNode && sourceNode ? targetNode.position.x < sourceNode.position.x : false;
+                // Get X coordinates from either position or position_data
+                const sX = sNode?.position?.x ?? sNode?.position_data?.x ?? 0;
+                const tX = tNode?.position?.x ?? tNode?.position_data?.x ?? 0;
+
+                const isTargetToLeft = tX < sX;
 
                 return {
                     id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
                     source: rel.person_a_id,
                     target: rel.person_b_id,
                     type: 'spouseEdge',
+                    // If target is on the left, source starts from its left side
                     sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
                     targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
                     data: { relId: rel.id, type: 'spouse' }
                 };
             }
 
-            // Standard child logic
             return {
                 id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
                 source: rel.person_a_id,
@@ -193,9 +196,8 @@ const TreeEditorRenderer = () => {
             };
         }).filter(e => e !== null);
 
-        // 4. RESTORED STATE UPDATES
         setNodes(initialNodes);
-        setEdges(initialEdges); 
+        setEdges(initialEdges);
         setTreeName('Family Tree'); 
     }
 }, [familyId, navigate, selectedFullNode]);

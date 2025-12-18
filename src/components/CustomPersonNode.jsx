@@ -92,8 +92,18 @@ const CustomPersonNode = ({ data, isConnectable, selected }) => {
             </div>
 
             <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} id="child-connect" />
-            <Handle type="target" position={Position.Left} isConnectable={isConnectable} id="spouse-left" />
-            <Handle type="source" position={Position.Right} isConnectable={isConnectable} id="spouse-right" />
+            <Handle 
+    type="bidirectional" // or "target"
+    position={Position.Left} 
+    id="spouse-left" 
+    style={{ top: '50%' }} 
+/>
+            <Handle 
+    type="bidirectional" // or "source"
+    position={Position.Right} 
+    id="spouse-right" 
+    style={{ top: '50%' }} 
+/>
         </div>
     );
 };
