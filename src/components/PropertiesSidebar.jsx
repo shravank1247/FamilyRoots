@@ -285,28 +285,26 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
                     <label>Birth Date</label>
                     <input type="date" id="birthDate" value={formData.birthDate || ''} onChange={handleFormChange} />
                 </div>
-                <div className="form-group">
+               <div className="form-group">
     <label>Gender</label>
-    <div className="gender-selection" style={{ display: 'flex', gap: '15px', marginTop: '5px' }}>
-        <label>
+    <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
             <input 
                 type="radio" 
-                id="gender" 
-                name="gender" 
+                name="gender-choice"
                 value="male" 
                 checked={formData.gender === 'male'} 
-                onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
-            /> Male
+                onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))} 
+            /> ♂️ Male
         </label>
-        <label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
             <input 
                 type="radio" 
-                id="gender" 
-                name="gender" 
+                name="gender-choice"
                 value="female" 
                 checked={formData.gender === 'female'} 
-                onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
-            /> Female
+                onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))} 
+            /> ♀️ Female
         </label>
     </div>
 </div>
