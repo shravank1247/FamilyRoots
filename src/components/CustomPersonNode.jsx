@@ -72,7 +72,7 @@ const CustomPersonNode = ({ data, selected }) => {
             className={`custom-person-node ${generationClass} ${selected ? 'selected' : ''}`}
             style={{ 
                 border: selected ? '5px solid #ff9900' : genderBorder,
-                backgroundColor: bgColor,
+                backgroundColor: bgColor || '#ffffff',
                 borderRadius: '8px',
                 background: '#fff',
                 padding: '10px'
