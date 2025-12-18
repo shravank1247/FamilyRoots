@@ -20,6 +20,8 @@ const RELATIONSHIP_TYPES = {
 
 
 const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
+    
+
     // State for Person Details Form
     const [formData, setFormData] = useState({});
     const [mode, setMode] = useState(null); // 'add' or 'edit'
@@ -35,6 +37,11 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
     const cloudinaryRef = useRef();
     const widgetRef = useRef();
 
+    if (!person) return null;
+    const handleChange = (field, value) => {
+        // We pass the updated person back to the parent (TreeEditor) immediately
+        onSave({ ...person, [field]: value });
+    };
 
     
     // Helper function to load all people and current person's relations
@@ -290,17 +297,18 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
                     <label htmlFor="isAlive" className="inline-label">Is this person alive?</label>
                 </div>
                     <div className="form-group">
-                        <label>Gender</label>
-                        <select 
-                            value={person.gender || ''} 
-                            onChange={(e) => onSave({ ...person, gender: e.target.value })}
-                        >
-                            <option value="">Select Gender</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
+                <label>Gender</label>
+                <select 
+                    value={person.gender || ''} 
+                    onChange={(e) => handleChange('gender', e.target.value)}
+                    className="gender-select"
+                >
+                    <option value="">Unknown</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
                 <div className="form-group">
                     <label>Anniversary Date</label>
                     <input type="date" id="anniversaryDate" value={formData.anniversaryDate || ''} onChange={handleFormChange} />
