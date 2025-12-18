@@ -141,9 +141,6 @@ const defaultColor = '#D3D3D3';
         
         const levelMap = assignLevels(people, rels);
 
-        const generationIndex = level % 10; // Always returns a number between 0 and 9
-const color = generationColors[generationIndex];
-
         if (people && people.length > 0) {
             const initialNodes = people.map((p, index) => {
                 const level = levelMap[p.id] || 0;
