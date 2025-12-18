@@ -80,7 +80,8 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
             surname: person.surname || '',
             birthDate: person.birth_date || '', 
             anniversaryDate: person.anniversary_date || '',
-            isAlive: person.is_alive !== false, // Use strict non-false check
+            isAlive: person.is_alive !== false,
+            gender: person.gender || '', // Added this
             notes: person.notes || '',
             tags: person.tags ? person.tags.join(', ') : '', 
             profilePictureUrl: person.profile_picture_url || ''
