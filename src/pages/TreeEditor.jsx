@@ -229,14 +229,27 @@ const TreeEditorRenderer = () => {
         y: relationshipType === 'child' ? parentNode.position.y + offset : parentNode.position.y 
     };
 
+    const { x, y } = parentNode.position;
+    const horizontalOffset = 300; // Increased offset to prevent overlapping
+    let newPosition;
+
+    if (relationshipType === 'spouse') {
+        // Force placement to the exact right of the selected node
+        newPosition = { x: x + horizontalOffset, y: y }; 
+    } else {
+        // Child or other logic
+        newPosition = { x: x, y: y + 250 }; 
+    }
+
     // 1. Create Person
     const { person: newPerson, error } = await createPerson({
         first_name: `New ${relationshipType}`,
         is_alive: true,
-        position_data: newPos
+        position_data: newPosition
     }, familyId);
 
     if (error) return;
+
 
     // 2. Build Relationships
     const dbRelationships = [];
@@ -249,6 +262,7 @@ const TreeEditorRenderer = () => {
         }
     } else if (relationshipType === 'spouse') {
         dbRelationships.push({ family_id: familyId, person_a_id: parentId, person_b_id: newPerson.id, type: 'spouse' });
+
     }
 
     // 3. Save to DB
