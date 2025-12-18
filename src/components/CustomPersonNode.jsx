@@ -45,8 +45,6 @@ const getPhotoUrl = (path) => {
 
 // --- MAIN COMPONENT DECLARATION (MUST ONLY APPEAR ONCE) ---
 const CustomPersonNode = ({ data, isConnectable, selected }) => {
-    
-    // Consolidated name for display
     const fullName = `${data.first_name} ${data.surname || data.last_name || ''}`;
     const initials = (data.first_name ? data.first_name[0] : '') + (data.surname || data.last_name ? (data.surname || data.last_name)[0] : '');
     const photoUrl = getPhotoUrl(data.profile_picture_url);
@@ -64,23 +62,12 @@ const CustomPersonNode = ({ data, isConnectable, selected }) => {
     const tagsDisplay = data.tags && Array.isArray(data.tags) && data.tags.length > 0 ? data.tags.join(', ') : null;
     
     // Generation Class for Coloring (Relies on data.generation passed from TreeEditor)
-    const generationClass = `gen-${(data.generation || 0) % 4}`;
-
-    /* // REMOVED DEBUG HOOK: This is for temporary testing and should be removed in production
-    useEffect(() => {
-        if (photoUrl) {
-            console.log('Node Image URL:', photoUrl);
-        }
-    }, [photoUrl]);
-    */
+   const generationClass = `gen-${(data.generation || 0) % 4}`;
 
     return (
         <div className={`custom-person-node ${generationClass} ${selected ? 'selected' : ''}`}>
-            {/* Handles for connections */}
-            {/* Parent connect (Target: Accepts incoming link from parent) */}
             <Handle type="target" position={Position.Top} isConnectable={isConnectable} id="parent-connect" /> 
             
-            {/* 1. PROFILE IMAGE */}
             <div className="profile-img-viz">
                 {photoUrl ? (
                     <img src={photoUrl} alt={fullName} className="person-photo" />
@@ -89,10 +76,8 @@ const CustomPersonNode = ({ data, isConnectable, selected }) => {
                 )}
             </div>
             
-            {/* 2. DETAILS */}
+            {/* 2. REMOVED the nested <div> that had the hardcoded background: data.bgColor */}
             <div className="person-info-viz">
-                
-                {/* A. HEADER/NAME */}
                 <div className="header-viz">
                     <div className="status-indicator" style={{ backgroundColor: statusColor }}></div>
                     <div className="name-line">
@@ -101,28 +86,13 @@ const CustomPersonNode = ({ data, isConnectable, selected }) => {
                     </div>
                 </div>
 
-                {/* B. DETAILS */}
-                <p className="detail-line">
-                    DOB: {birthYear} ({age} yrs)
-                </p>
-                {anniversaryYear && (
-                    <p className="detail-line">
-                        Anniv: {anniversaryYear}
-                    </p>
-                )}
-                {tagsDisplay && (
-                    <p className="tag-line">
-                        Tags: {tagsDisplay}
-                    </p>
-                )}
+                <p className="detail-line">DOB: {birthYear} ({age} yrs)</p>
+                {anniversaryYear && <p className="detail-line">Anniv: {anniversaryYear}</p>}
+                {tagsDisplay && <p className="tag-line">Tags: {tagsDisplay}</p>}
             </div>
 
-            {/* Handles for connections */}
-            {/* Child connect (Source: Sends link to child) */}
             <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} id="child-connect" />
-            {/* Spouse connect (Target: Receives link from spouse—for the heart) */}
             <Handle type="target" position={Position.Right} isConnectable={isConnectable} id="spouse-left" />
-            {/* Spouse connect (Source: Sends link to spouse—for the heart) */}
             <Handle type="source" position={Position.Left} isConnectable={isConnectable} id="spouse-right" />
         </div>
     );

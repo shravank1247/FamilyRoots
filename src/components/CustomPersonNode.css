@@ -106,3 +106,30 @@
     margin-right: 5px;
     flex-shrink: 0;
 }
+
+
+/* CustomPersonNode.css */
+
+/* Generation 0 (Ancestors/Roots) */
+.custom-person-node.gen-0 {
+    background-color: #fff9db; /* Light Yellow */
+    border-color: #fcc419;
+}
+
+/* Generation 1 (Children) */
+.custom-person-node.gen-1 {
+    background-color: #e7f5ff; /* Light Blue */
+    border-color: #339af0;
+}
+
+/* Generation 2 (Grandchildren) */
+.custom-person-node.gen-2 {
+    background-color: #ebfbee; /* Light Green */
+    border-color: #51cf66;
+}
+
+/* Generation 3 (Great-Grandchildren) */
+.custom-person-node.gen-3 {
+    background-color: #f3f0ff; /* Light Purple */
+    border-color: #845ef7;
+}
