@@ -156,23 +156,36 @@ const TreeEditorRenderer = () => {
         
         const initialEdges = rels.map(rel => {
             const isSpouse = rel.type === 'spouse';
-            const isChild = rel.type === 'child';
 
-            if (!isSpouse && !isChild) return null;
+    if (isSpouse) {
+        // Logic to detect if the target is to the left or right of the source
+        const sourceNode = people.find(p => p.id === rel.person_a_id);
+        const targetNode = people.find(p => p.id === rel.person_b_id);
+        
+        const isTargetToLeft = targetNode?.position_data?.x < sourceNode?.position_data?.x;
 
-            return {
-                id: `e-${rel.person_a_id}-${rel.person_b_id}-${rel.type}`,
-                source: rel.person_a_id,
-                target: rel.person_b_id,
-                type: isSpouse ? 'spouseEdge' : 'smoothstep', 
-                borderRadius: 20,
-                markerEnd: isSpouse ? undefined : { type: 'arrowclosed' },
-                // IDs match the handles in your CustomPersonNode.jsx
-                sourceHandle: isSpouse ? 'spouse-right' : 'child-connect',
-                targetHandle: isSpouse ? 'spouse-left' : 'parent-connect',
-                data: { relId: rel.id, type: rel.type }
-            };
-        }).filter(e => e !== null);
+        return {
+            id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
+            source: rel.person_a_id,
+            target: rel.person_b_id,
+            type: 'spouseEdge',
+            // If target is on the left, source starts from Left handle
+            sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
+            targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
+            data: { relId: rel.id, type: 'spouse' }
+        };
+    }
+
+    // Standard child logic
+    return {
+        id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
+        source: rel.person_a_id,
+        target: rel.person_b_id,
+        type: 'smoothstep',
+        sourceHandle: 'child-connect',
+        targetHandle: 'parent-connect'
+    };
+        })
 
         setNodes(initialNodes);
         setEdges(initialEdges); 
@@ -235,7 +248,7 @@ const TreeEditorRenderer = () => {
 
     if (relationshipType === 'spouse') {
         // Force placement to the exact right of the selected node
-        newPosition = { x: x + horizontalOffset, y: y }; 
+        newPosition = { x: x - horizontalOffset, y: y }; 
     } else {
         // Child or other logic
         newPosition = { x: x, y: y + 250 }; 
