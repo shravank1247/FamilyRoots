@@ -30,6 +30,11 @@ import CustomPersonNode from '../components/CustomPersonNode';
 import QuickAddButton from '../components/QuickAddButton'; 
 import SpouseEdge from '../components/SpouseEdge'; 
 
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+
+
+
 const nodeTypes = { 
     personNode: CustomPersonNode,
     junction: (props) => (
@@ -49,6 +54,7 @@ const TreeEditorRenderer = () => {
     const { familyId } = useParams();
     const navigate = useNavigate();
 
+    const reactFlowInstance = useReactFlow();
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
     const [selectedNodeData, setSelectedNodeData] = useState(null);
@@ -58,7 +64,7 @@ const TreeEditorRenderer = () => {
     const [treeName, setTreeName] = useState('Loading...');
     const [saveStatus, setSaveStatus] = useState(null);
     
-    const reactFlowInstance = useReactFlow();
+    
 
     // --- GENERATION COLOR CONFIG ---
     const generationColors = {
@@ -69,6 +75,27 @@ const TreeEditorRenderer = () => {
         4: '#F08080', // Light Coral
     };
     const defaultColor = '#D3D3D3';
+
+
+    const handlePrintTree = async () => {
+    const element = document.querySelector('.react-flow-container');
+    const canvas = await html2canvas(element, {
+        backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true, // Crucial for Cloudinary images
+        scale: 2 // Higher quality
+    });
+    
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`${treeName}-FamilyTree.pdf`);
+};
+
 
     // --- HELPERS ---
 
@@ -154,53 +181,49 @@ const TreeEditorRenderer = () => {
         });
         
         // 3. Map Relationships to Edges
-        const initialEdges = rels.map(rel => {
-            const isSpouse = rel.type === 'spouse';
-            const isChild = rel.type === 'child';
+        // Inside loadData in TreeEditor.jsx
+const initialEdges = rels.map(rel => {
+    const isSpouse = rel.type === 'spouse';
+    const isChild = rel.type === 'child';
 
-            if (!isSpouse && !isChild) return null;
+    if (!isSpouse && !isChild) return null;
 
-            if (isSpouse) {
-                const sNode = people.find(p => p.id === rel.person_a_id);
-                const tNode = people.find(p => p.id === rel.person_b_id);
-                
-                const sX = sNode?.position_data?.x ?? 0;
-                const tX = tNode?.position_data?.x ?? 0;
+    if (isSpouse) {
+        // Compare X positions to decide Left vs Right connection
+        const sNode = people.find(p => p.id === rel.person_a_id);
+        const tNode = people.find(p => p.id === rel.person_b_id);
+        const isTargetToLeft = (tNode?.position_data?.x ?? 0) < (sNode?.position_data?.x ?? 0);
 
-                // If Target is to the left of Source
-                const isTargetToLeft = tX < sX;
-
-                return {
-                    id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
-                    source: rel.person_a_id,
-                    target: rel.person_b_id,
-                    type: 'spouseEdge',
-                    // If spouse is on the left: Source uses Left handle, Target uses Right handle
-                    sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
-                    targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
-                    data: { relId: rel.id, type: 'spouse' }
-                };
-            }
-
-            // Standard child logic connecting Top to Bottom
-            return {
-                id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
-                source: rel.person_a_id,
-                target: rel.person_b_id,
-                type: 'smoothstep',
-                borderRadius: 20,
-                markerEnd: { type: 'arrowclosed' },
-                sourceHandle: 'child-connect',
-                targetHandle: 'parent-connect',
-                data: { relId: rel.id, type: 'child' }
-            };
-        }).filter(e => e !== null);
-
-        setNodes(initialNodes);
-        setEdges(initialEdges);
-        setTreeName('Family Tree'); 
+        return {
+            id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
+            source: rel.person_a_id,
+            target: rel.person_b_id,
+            type: 'spouseEdge', // Must match edgeTypes key
+            // Handshake: Source(Right) -> Target(Left) or vice versa
+            sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
+            targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
+            data: { relId: rel.id, type: 'spouse' }
+        };
     }
-}, [familyId, navigate, selectedFullNode]);
+
+    return {
+        id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
+        source: rel.person_a_id,
+        target: rel.person_b_id,
+        type: 'smoothstep',
+        borderRadius: 20,
+        markerEnd: { type: 'arrowclosed' },
+        sourceHandle: 'child-connect',
+        targetHandle: 'parent-connect',
+        data: { relId: rel.id, type: 'child' }
+    };
+}).filter(e => e !== null);
+
+                setNodes(initialNodes);
+                setEdges(initialEdges);
+                setTreeName('Family Tree'); 
+            }
+        }, [familyId, navigate, selectedFullNode]);
 
     
 
@@ -326,6 +349,32 @@ const TreeEditorRenderer = () => {
         setSelectedNodeData(updatedPerson); 
     }, []);
 
+    const onNodeDragStop = useCallback((event, node) => {
+    if (!reactFlowInstance) return;
+    
+    setEdges((eds) => 
+        eds.map((edge) => {
+            // Only care about spouse edges involving the dragged node
+            if (edge.type === 'spouseEdge' && (edge.source === node.id || edge.target === node.id)) {
+                const sourceNode = reactFlowInstance.getNode(edge.source);
+                const targetNode = reactFlowInstance.getNode(edge.target);
+
+                if (sourceNode && targetNode) {
+                    // Check if target is now to the left of the source
+                    const isTargetToLeft = targetNode.position.x < sourceNode.position.x;
+
+                    return {
+                        ...edge,
+                        sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
+                        targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
+                    };
+                }
+            }
+            return edge;
+        })
+    );
+}, [reactFlowInstance, setEdges]);
+
     return (
         <div className="tree-editor-wrapper">
             <main className="main-content-canvas">
@@ -337,6 +386,7 @@ const TreeEditorRenderer = () => {
                         </button>
                         <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
                         {/* <button className="secondary-btn" onClick={onLayout}>✨ Auto Arrange</button> */}
+                        <button className="secondary-btn" onClick={handlePrintTree}>🖨️ Print PDF</button>
                         <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
                         <a href="/dashboard" className="secondary-btn">← Back</a>
                     </div>
@@ -368,6 +418,8 @@ const TreeEditorRenderer = () => {
         </div>
     );
 };
+
+
 
 const TreeEditor = () => (
     <ReactFlowProvider>
