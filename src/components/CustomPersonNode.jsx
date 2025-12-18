@@ -44,62 +44,56 @@ const getPhotoUrl = (path) => {
 }
 
 // --- MAIN COMPONENT DECLARATION (MUST ONLY APPEAR ONCE) ---
-const CustomPersonNode = ({ data, isConnectable, selected }) => {
-    const fullName = `${data.first_name} ${data.surname || data.last_name || ''}`;
-    const initials = (data.first_name ? data.first_name[0] : '') + (data.surname || data.last_name ? (data.surname || data.last_name)[0] : '');
-    const photoUrl = getPhotoUrl(data.profile_picture_url);
-
-    // Calculate Age and Status
-    const age = calculateAge(data.birth_date);
-    const birthYear = data.birth_date ? new Date(data.birth_date).getFullYear() : 'N/A';
-    // Use data.anniversary_date directly from the API response (if it exists)
-    const anniversaryYear = data.anniversary_date ? new Date(data.anniversary_date).getFullYear() : null; 
+const CustomPersonNode = ({ data, selected }) => {
+    const fullName = `${data.first_name} ${data.surname || ''}`;
+    const initials = (data.first_name?.[0] || '') + (data.surname?.[0] || '');
     
-    // Status color based on is_alive property
-    const statusColor = data.is_alive === false ? '#ff4d4d' : '#52c41a'; // Red/Green
-    
-    // Tags processing
-    const tagsDisplay = data.tags && Array.isArray(data.tags) && data.tags.length > 0 ? data.tags.join(', ') : null;
-    
-    // Generation Class for Coloring (Relies on data.generation passed from TreeEditor)
-   const generationClass = `gen-${(data.generation || 0) % 4}`;
+    // Status and Generation logic
+    const statusColor = data.is_alive === false ? '#ff4d4d' : '#52c41a';
+    const generationClass = `gen-${(data.generation || 0) % 5}`;
 
     return (
         <div className={`custom-person-node ${generationClass} ${selected ? 'selected' : ''}`}>
-            <Handle type="target" position={Position.Top} isConnectable={isConnectable} id="parent-connect" /> 
+            {/* Top/Bottom handles for Parent-Child relationships */}
+            <Handle type="target" position={Position.Top} id="parent-connect" />
             
             <div className="profile-img-viz">
-                {photoUrl ? (
-                    <img src={photoUrl} alt={fullName} className="person-photo" />
+                {data.profile_picture_url ? (
+                    <img src={data.profile_picture_url} alt={fullName} className="person-photo" />
                 ) : (
                     <span className="initials-placeholder">{initials || '?'}</span>
                 )}
             </div>
             
-            {/* 2. REMOVED the nested <div> that had the hardcoded background: data.bgColor */}
             <div className="person-info-viz">
                 <div className="header-viz">
                     <div className="status-indicator" style={{ backgroundColor: statusColor }}></div>
                     <div className="name-line">
                         <strong>{data.first_name}</strong>
-                        <span className="surname-text">{data.surname || data.last_name || ''}</span>
+                        <span className="surname-text">{data.surname || ''}</span>
                     </div>
                 </div>
-
-                <p className="detail-line">DOB: {birthYear} ({age} yrs)</p>
-                {anniversaryYear && <p className="detail-line">Anniv: {anniversaryYear}</p>}
-                {tagsDisplay && <p className="tag-line">Tags: {tagsDisplay}</p>}
+                <p className="detail-line">DOB: {data.birth_date || 'N/A'}</p>
             </div>
-                        {/* Top: For Children to connect to Parents */}
-            
-            {/* 1. Top: For incoming child links */}
-<Handle type="target" position={Position.Top} id="parent-connect" />
 
-{/* 2. Bottom: For outgoing child links */}
-<Handle type="source" position={Position.Bottom} id="child-connect" />
+            <Handle type="source" position={Position.Bottom} id="child-connect" />
 
-<Handle type="bidirectional" position={Position.Left} id="spouse-left" style={{ top: '50%' }} />
-<Handle type="bidirectional" position={Position.Right} id="spouse-right" style={{ top: '50%' }} />
+            {/* CRITICAL: Side handles for Spouses */}
+            {/* Left side handle */}
+<Handle 
+    type="source" 
+    position={Position.Left} 
+    id="spouse-left" 
+    style={{ top: '50%', background: '#ff69b4', width: '8px', height: '8px' }} 
+/>
+
+{/* Right side handle */}
+<Handle 
+    type="target" 
+    position={Position.Right} 
+    id="spouse-right" 
+    style={{ top: '50%', background: '#ff69b4', width: '8px', height: '8px' }} 
+/>
         </div>
     );
 };
