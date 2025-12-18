@@ -30,11 +30,6 @@ import CustomPersonNode from '../components/CustomPersonNode';
 import QuickAddButton from '../components/QuickAddButton'; 
 import SpouseEdge from '../components/SpouseEdge'; 
 
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-
-
-
 const nodeTypes = { 
     personNode: CustomPersonNode,
     junction: (props) => (
@@ -75,27 +70,6 @@ const TreeEditorRenderer = () => {
         4: '#F08080', // Light Coral
     };
     const defaultColor = '#D3D3D3';
-
-
-    const handlePrintTree = async () => {
-    const element = document.querySelector('.react-flow-container');
-    const canvas = await html2canvas(element, {
-        backgroundColor: '#ffffff',
-        logging: false,
-        useCORS: true, // Crucial for Cloudinary images
-        scale: 2 // Higher quality
-    });
-    
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`${treeName}-FamilyTree.pdf`);
-};
-
 
     // --- HELPERS ---
 
@@ -149,56 +123,85 @@ const TreeEditorRenderer = () => {
 
     // --- DATA LOADING ---
     const loadData = useCallback(async () => {
+    const authUser = await checkAuth();
+    if (!authUser) { navigate('/login'); return; }
+    if (!familyId) return;
+
     const { people } = await fetchPeopleByFamily(familyId); 
     const { relationships } = await fetchRelationshipsByPerson(familyId);
-    const rels = relationships || [];
+    const rels = relationships || []; 
+    
+    // 1. Calculate Generations for color coding
     const levelMap = assignLevels(people, rels);
 
     if (people && people.length > 0) {
-        // 1. Map Nodes First
-        const initialNodes = people.map((p, index) => ({
-            id: p.id,
-            type: 'personNode',
-            data: { ...p, generation: levelMap[p.id] || 0 },
-            position: p.position_data || { x: index * 250, y: 0 },
-        }));
-
-        // 2. Map Edges using the positions from initialNodes
+        // 2. Map People to Nodes FIRST so we can use them for Edge logic
+        const initialNodes = people.map((p, index) => {
+            const pos = p.position_data || { x: index * 250, y: Math.floor(index / 3) * 150 };
+            const level = levelMap[p.id] || 0;
+            
+            return {
+                id: p.id,
+                type: 'personNode',
+                data: { 
+                    ...p, 
+                    generation: level,
+                    bgColor: generationColors[level % 5] || defaultColor 
+                },
+                position: pos,
+                selected: selectedFullNode?.id === p.id,
+                style: selectedFullNode?.id === p.id ? { border: '5px solid #ff9900' } : {}
+            };
+        });
+        
+        // 3. Map Relationships to Edges
         const initialEdges = rels.map(rel => {
-            if (rel.type === 'spouse') {
-                const sNode = initialNodes.find(n => n.id === rel.person_a_id);
-                const tNode = initialNodes.find(n => n.id === rel.person_b_id);
+            const isSpouse = rel.type === 'spouse';
+            const isChild = rel.type === 'child';
+
+            if (!isSpouse && !isChild) return null;
+
+            if (isSpouse) {
+                const sNode = people.find(p => p.id === rel.person_a_id);
+                const tNode = people.find(p => p.id === rel.person_b_id);
                 
-                // Use the position we just assigned to the nodes
-                const isTargetToLeft = tNode.position.x < sNode.position.x;
+                const sX = sNode?.position_data?.x ?? 0;
+                const tX = tNode?.position_data?.x ?? 0;
+
+                // If Target is to the left of Source
+                const isTargetToLeft = tX < sX;
 
                 return {
-                    id: `e-${rel.person_a_id}-${rel.person_b_id}`,
+                    id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
                     source: rel.person_a_id,
                     target: rel.person_b_id,
                     type: 'spouseEdge',
-                    // Force the handles to the sides
+                    // If spouse is on the left: Source uses Left handle, Target uses Right handle
                     sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
                     targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
+                    data: { relId: rel.id, type: 'spouse' }
                 };
             }
-            if (rel.type === 'child') {
-                return {
-                    id: `e-${rel.person_a_id}-${rel.person_b_id}`,
-                    source: rel.person_a_id,
-                    target: rel.person_b_id,
-                    type: 'smoothstep',
-                    sourceHandle: 'child-connect',
-                    targetHandle: 'parent-connect',
-                };
-            }
-            return null;
-        }).filter(Boolean);
+
+            // Standard child logic connecting Top to Bottom
+            return {
+                id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
+                source: rel.person_a_id,
+                target: rel.person_b_id,
+                type: 'smoothstep',
+                borderRadius: 20,
+                markerEnd: { type: 'arrowclosed' },
+                sourceHandle: 'child-connect',
+                targetHandle: 'parent-connect',
+                data: { relId: rel.id, type: 'child' }
+            };
+        }).filter(e => e !== null);
 
         setNodes(initialNodes);
         setEdges(initialEdges);
+        setTreeName('Family Tree'); 
     }
-}, [familyId, navigate]);
+}, [familyId, navigate, selectedFullNode]);
 
     
 
@@ -324,31 +327,31 @@ const TreeEditorRenderer = () => {
         setSelectedNodeData(updatedPerson); 
     }, []);
 
-    const onNodeDragStop = useCallback((event, node) => {
-    if (!reactFlowInstance) return;
+    // const onNodeDragStop = useCallback((event, node) => {
+    // if (!reactFlowInstance) return;
     
-    setEdges((eds) => 
-        eds.map((edge) => {
-            // Only care about spouse edges involving the dragged node
-            if (edge.type === 'spouseEdge' && (edge.source === node.id || edge.target === node.id)) {
-                const sourceNode = reactFlowInstance.getNode(edge.source);
-                const targetNode = reactFlowInstance.getNode(edge.target);
+    // setEdges((eds) => 
+    //     eds.map((edge) => {
+    //         // Only care about spouse edges involving the dragged node
+    //         if (edge.type === 'spouseEdge' && (edge.source === node.id || edge.target === node.id)) {
+    //             const sourceNode = reactFlowInstance.getNode(edge.source);
+    //             const targetNode = reactFlowInstance.getNode(edge.target);
 
-                if (sourceNode && targetNode) {
-                    // Check if target is now to the left of the source
-                    const isTargetToLeft = targetNode.position.x < sourceNode.position.x;
+    //             if (sourceNode && targetNode) {
+    //                 // Check if target is now to the left of the source
+    //                 const isTargetToLeft = targetNode.position.x < sourceNode.position.x;
 
-                    return {
-                        ...edge,
-                        sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
-                        targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
-                    };
-                }
-            }
-            return edge;
-        })
-    );
-}, [reactFlowInstance, setEdges]);
+    //                 return {
+    //                     ...edge,
+    //                     sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
+    //                     targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
+    //                 };
+    //             }
+    //         }
+    //         return edge;
+    //     })
+    // );
+// }, [reactFlowInstance, setEdges]);
 
     return (
         <div className="tree-editor-wrapper">
@@ -361,7 +364,6 @@ const TreeEditorRenderer = () => {
                         </button>
                         <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
                         {/* <button className="secondary-btn" onClick={onLayout}>✨ Auto Arrange</button> */}
-                        <button className="secondary-btn" onClick={handlePrintTree}>🖨️ Print PDF</button>
                         <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
                         <a href="/dashboard" className="secondary-btn">← Back</a>
                     </div>
@@ -377,6 +379,7 @@ const TreeEditorRenderer = () => {
                         onPaneClick={onPaneClick}
                         nodeTypes={nodeTypes}
                         edgeTypes={edgeTypes} 
+                        onNodeDragStop={onNodeDragStop}
                         fitView
                     >
                         <Controls />
