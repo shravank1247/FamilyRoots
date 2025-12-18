@@ -66,7 +66,7 @@ const CustomPersonNode = ({ data, selected }) => {
                          gender === 'female' ? '3px solid #eb2f96' : '1px solid #ddd';
     
     const statusColor = is_alive === false ? '#ff4d4d' : '#52c41a';
-    const generationClass = `gen-${(generation || 0) % 5}`;
+    const generationClass = `gen-${(generation || 0) % 10}`;
 
     return (
         <div 
