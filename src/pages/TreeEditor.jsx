@@ -244,10 +244,10 @@ const TreeEditorRenderer = () => {
 
         const offset = 250; 
         const { x, y } = parentNode.position;
-        const spouseId = getSpouseId(parentId);
         
-        let newPosition = { x: x, y: y + offset };
-        if (relationshipType === 'spouse') newPosition = { x: x + offset, y: y };
+        // Calculate new position
+        let newPos = { x: x, y: y + offset }; // Child
+        if (relationshipType === 'spouse') newPos = { x: x + offset, y: y };
         
         // 1. Create in Database
         const { person: newPerson, error } = await createPerson({
