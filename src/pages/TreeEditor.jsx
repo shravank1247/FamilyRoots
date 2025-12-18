@@ -247,7 +247,8 @@ const TreeEditorRenderer = () => {
         const parentNode = nodes.find(n => n.id === parentId);
         if (!parentNode) return;
 
-        const spouseId = getSpouseId(parentId);
+        //dual linking of child
+        // const spouseId = getSpouseId(parentId);
         const { x, y } = parentNode.position;
         const horizontalOffset = 300; 
         
@@ -269,9 +270,9 @@ const TreeEditorRenderer = () => {
         const dbRelationships = [];
         if (relationshipType === 'child') {
             dbRelationships.push({ family_id: familyId, person_a_id: parentId, person_b_id: newPerson.id, type: 'child' });
-            if (spouseId) {
-                dbRelationships.push({ family_id: familyId, person_a_id: spouseId, person_b_id: newPerson.id, type: 'child' });
-            }
+            // if (spouseId) {
+            //     dbRelationships.push({ family_id: familyId, person_a_id: spouseId, person_b_id: newPerson.id, type: 'child' });
+            // }
         } else if (relationshipType === 'spouse') {
             dbRelationships.push({ family_id: familyId, person_a_id: parentId, person_b_id: newPerson.id, type: 'spouse' });
         }
