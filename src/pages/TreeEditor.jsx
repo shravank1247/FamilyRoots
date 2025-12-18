@@ -326,6 +326,7 @@ const TreeEditorRenderer = () => {
     ));
     
     setSelectedNodeData(updatedPerson); 
+    console.log("Gender saved successfully:", updatedPerson.gender);
     setSaveStatus('Changes Saved!');
     setTimeout(() => setSaveStatus(null), 2000);
 }, [setNodes, setSelectedNodeData]);

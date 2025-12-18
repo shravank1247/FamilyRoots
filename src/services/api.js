@@ -173,20 +173,18 @@ export async function uploadProfilePicture(file, familyId, personId) {
 }
 
 export const updatePerson = async (id, updates) => {
-    try {
-        const { data, error } = await supabase
-            .from('people')
-            .update(updates)
-            .eq('id', id)
-            .select()
-            .single();
+    const { data, error } = await supabase
+        .from('people')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
 
-        if (error) throw error;
-        return { person: data, error: null };
-    } catch (error) {
+    if (error) {
         console.error('Error updating person:', error);
         return { person: null, error };
     }
+    return { person: data, error: null };
 };
 
 /**
