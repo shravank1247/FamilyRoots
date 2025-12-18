@@ -162,27 +162,18 @@ const TreeEditorRenderer = () => {
             if (!isSpouse && !isChild) return null;
 
             if (isSpouse) {
-                // const sNode = people.find(p => p.id === rel.person_a_id);
-                // const tNode = people.find(p => p.id === rel.person_b_id);
-                
-                // const sX = sNode?.position_data?.x ?? 0;
-                // const tX = tNode?.position_data?.x ?? 0;
-
-                // // If Target is to the left of Source
-                // const isTargetToLeft = tX < sX;
-
+                // Fix handles to the sides for a horizontal link
                 return {
                     id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
                     source: rel.person_a_id,
                     target: rel.person_b_id,
                     type: 'spouseEdge',
-                    sourceHandle: 'spouse-right',
-                    targetHandle: 'spouse-left',
+                    sourceHandle: 'spouse-right', // Fixed to right side of source
+                    targetHandle: 'spouse-left',  // Fixed to left side of target
                     data: { relId: rel.id, type: 'spouse' }
                 };
             }
 
-            // Standard child logic connecting Top to Bottom
             return {
                 id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
                 source: rel.person_a_id,
@@ -196,11 +187,11 @@ const TreeEditorRenderer = () => {
             };
         }).filter(e => e !== null);
 
-        setNodes(initialNodes);
-        setEdges(initialEdges);
-        setTreeName('Family Tree'); 
-    }
-}, [familyId, navigate, selectedFullNode]);
+                setNodes(initialNodes);
+                setEdges(initialEdges);
+                setTreeName('Family Tree'); 
+            }
+        }, [familyId, navigate, selectedFullNode]);
 
     
 
@@ -378,7 +369,6 @@ const TreeEditorRenderer = () => {
                         onPaneClick={onPaneClick}
                         nodeTypes={nodeTypes}
                         edgeTypes={edgeTypes} 
-                        onNodeDragStop={onNodeDragStop}
                         fitView
                     >
                         <Controls />

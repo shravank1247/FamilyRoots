@@ -14,8 +14,8 @@ const SpouseEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
 
     return (
         <>
-            {/* The pink connection line */}
-            <BaseEdge id={id} path={edgePath} style={{ stroke: '#ff69b4', strokeWidth: 3 }} />
+            {/* Pink connection line */}
+            <BaseEdge id={id} path={edgePath} style={{ stroke: '#ff69b4', strokeWidth: 3, opacity: 0.8 }} />
             
             <EdgeLabelRenderer>
                 <div
@@ -25,6 +25,7 @@ const SpouseEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
                         pointerEvents: 'all',
                         fontSize: '22px',
                         zIndex: 10,
+                        cursor: 'default'
                     }}
                 >
                     ❤️

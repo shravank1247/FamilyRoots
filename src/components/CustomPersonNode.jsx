@@ -97,20 +97,21 @@ const CustomPersonNode = ({ data, isConnectable, selected }) => {
             <Handle type="source" position={Position.Bottom} id="child-connect" />
 
             {/* Left: Specifically for Spouse on the Left */}
+                {/* spouse-left handle on the LEFT side */}
             <Handle 
-    type="source" 
-    position={Position.Left} 
-    id="spouse-left" 
-    style={{ top: '50%', background: '#ff69b4', width: '8px', height: '8px' }} 
-/>
+                type="bidirectional" 
+                position={Position.Left} 
+                id="spouse-left" 
+                style={{ top: '50%', background: '#ff69b4', width: '8px', height: '8px' }} 
+            />
 
-{/* Right side handle */}
-<Handle 
-    type="target" 
-    position={Position.Right} 
-    id="spouse-right" 
-    style={{ top: '50%', background: '#ff69b4', width: '8px', height: '8px' }} 
-/>
+            {/* spouse-right handle on the RIGHT side */}
+            <Handle 
+                type="bidirectional" 
+                position={Position.Right} 
+                id="spouse-right" 
+                style={{ top: '50%', background: '#ff69b4', width: '8px', height: '8px' }} 
+            />
         </div>
     );
 };
