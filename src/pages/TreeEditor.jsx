@@ -202,15 +202,25 @@ const TreeEditorRenderer = () => {
     const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
     const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
     
+    
     const onNodeClick = useCallback((event, node) => {
         setSelectedFullNode(node); 
         setSelectedNodeData(node.data); 
-        setNodes((nds) => nds.map((n) => ({
-            ...n,
-            selected: n.id === node.id,
-        })));
+        
+        // Explicitly update nodes to apply the selection style
+        setNodes((nds) => nds.map((n) => {
+            if (n.id === node.id) {
+                return {
+                    ...n,
+                    selected: true,
+                    style: { ...n.style, border: '5px solid #ff9900' } // RESTORED BORDER
+                };
+            }
+            return { ...n, selected: false, style: { ...n.style, border: 'none' } };
+        }));
     }, []);
     
+
     const onPaneClick = useCallback(() => {
         setSelectedNodeData(null);
         setSelectedFullNode(null);
@@ -239,16 +249,36 @@ const TreeEditorRenderer = () => {
         let newPosition = { x: x, y: y + offset };
         if (relationshipType === 'spouse') newPosition = { x: x + offset, y: y };
         
+        // 1. Create in Database
         const { person: newPerson, error } = await createPerson({
             first_name: `New ${relationshipType}`,
             is_alive: true,
+            position_data: newPos
         }, familyId);
 
-        if (error) return;
+        if (error) {
+            alert("Error adding node: " + error.message);
+            return;
+        }
 
-        // Immediately trigger a reload to recalculate generations for the new node
+        // 2. Create Relationship in Database
+        const dbRel = [{ 
+            family_id: familyId, 
+            person_a_id: parentId, 
+            person_b_id: newPerson.id, 
+            type: relationshipType === 'spouse' ? 'spouse' : 'child' 
+        }];
+        await createRelationships(dbRel);
+
+        // 3. Instead of just waiting for loadData, let's refresh manually 
+        // to ensure colors and links are recalculated correctly.
         await loadData();
-    }, [nodes, familyId, getSpouseId, loadData]);
+        
+        // 4. Auto-select the newly created node
+        const newlyCreatedNode = { id: newPerson.id, data: newPerson };
+        onNodeClick(null, newlyCreatedNode);
+
+    }, [nodes, familyId, createPerson, createRelationships, loadData, onNodeClick]);
 
     const handleSaveLayout = async () => {
         setSaveStatus('Saving...');
