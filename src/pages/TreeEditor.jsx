@@ -146,19 +146,18 @@ const color = generationColors[generationIndex];
 
         if (people && people.length > 0) {
             const initialNodes = people.map((p, index) => {
-                const pos = p.position_data || { x: index * 250, y: Math.floor(index / 3) * 150 };
                 const level = levelMap[p.id] || 0;
                 const safeIndex = level % 10
-                
+                const nodeColor = generationColors[safeIndex] || defaultColor;
                 return {
                     id: p.id,
                     type: 'personNode',
                     data: { 
                         ...p, 
                         generation: level,
-                        bgColor: generationColors[safeIndex] || defaultColor 
+                        bgColor: nodeColor
                     },
-                    position: pos,
+                    position: p.position_data || { x: index * 250, y: level * 200 },
                     selected: selectedFullNode?.id === p.id,
                     style: selectedFullNode?.id === p.id ? { border: '5px solid #ff9900' } : {}
                 };
