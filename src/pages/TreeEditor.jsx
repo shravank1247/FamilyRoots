@@ -32,7 +32,6 @@ import SpouseEdge from '../components/SpouseEdge';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
-
 const nodeTypes = { 
     personNode: CustomPersonNode,
     junction: (props) => (
@@ -62,30 +61,16 @@ const TreeEditorRenderer = () => {
     const [treeName, setTreeName] = useState('Loading...');
     const [saveStatus, setSaveStatus] = useState(null);
 
+    // --- GENERATION COLOR CONFIG ---
     const generationColors = {
-    0: { color: '#FFD700', label: 'Ancestors / Root' },
-    1: { color: '#87CEEB', label: 'Children' },
-    2: { color: '#98FB98', label: 'Grandchildren' },
-    3: { color: '#DDA0DD', label: 'Great-Grandchildren' },
-    4: { color: '#F08080', label: '2nd Great-Grandchildren' },
-};
-const defaultColor = '#D3D3D3';
+        0: '#FFD700', 
+        1: '#87CEEB', 
+        2: '#98FB98', 
+        3: '#DDA0DD', 
+        4: '#F08080', 
+    };
+    const defaultColor = '#D3D3D3';
 
-const nodeTypes = { personNode: CustomPersonNode };
-const edgeTypes = { spouseEdge: SpouseEdge };
-
-// 2. Legend Component
-const GenerationLegend = () => (
-    <div className="generation-legend">
-        <h4>Generation Guide</h4>
-        {Object.entries(generationColors).map(([key, item]) => (
-            <div key={key} className="legend-item">
-                <span className="color-box" style={{ backgroundColor: item.color }}></span>
-                <span className="legend-label">{item.label}</span>
-            </div>
-        ))}
-    </div>
-);
 
     const handlePrintTree = async () => {
     const element = document.querySelector('.react-flow-container');
