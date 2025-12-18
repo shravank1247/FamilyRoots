@@ -139,6 +139,21 @@ const defaultColor = '#D3D3D3';
         const { relationships } = await fetchRelationshipsByPerson(familyId);
         const rels = relationships || []; 
         
+
+        // 1. Fetch the Family Name
+    const { data: familyData, error: familyError } = await supabase
+        .from('families')
+        .select('name')
+        .eq('id', familyId)
+        .single();
+
+    if (!familyError && familyData) {
+        setTreeName(familyData.name); // Updates the title from "Loading..." to the actual name
+    } else {
+        setTreeName('Family Tree'); // Fallback if name not found
+    }
+
+
         // --- FIX: AUTO-CREATE FIRST NODE IF TREE IS EMPTY ---
     if (!people || people.length === 0) {
         console.log("Empty tree detected. Creating root node...");
@@ -158,7 +173,7 @@ const defaultColor = '#D3D3D3';
     }
     // --- END FIX ---
 
-    
+
         const levelMap = assignLevels(people, rels);
 
          if (people && people.length > 0) {
@@ -374,7 +389,7 @@ const defaultColor = '#D3D3D3';
         <div className="tree-editor-wrapper">
             <main className="main-content-canvas">
                 <header className="canvas-header">
-                    <h2>{treeName} - Editor</h2>
+                    <h2>{treeName}</h2>
                     <div className="header-actions">
                         <button className="secondary-btn" onClick={handleSaveLayout} disabled={saveStatus === 'Saving...'}>
                             {saveStatus || '💾 Save Layout'}
