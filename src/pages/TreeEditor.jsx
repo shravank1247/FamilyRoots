@@ -49,6 +49,7 @@ const TreeEditorRenderer = () => {
     const { familyId } = useParams();
     const navigate = useNavigate();
 
+    const reactFlowInstance = useReactFlow();
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
     const [selectedNodeData, setSelectedNodeData] = useState(null);
@@ -58,7 +59,7 @@ const TreeEditorRenderer = () => {
     const [treeName, setTreeName] = useState('Loading...');
     const [saveStatus, setSaveStatus] = useState(null);
     
-    const reactFlowInstance = useReactFlow();
+    
 
     // --- GENERATION COLOR CONFIG ---
     const generationColors = {
@@ -371,6 +372,8 @@ const TreeEditorRenderer = () => {
 };
 
 const onNodeDragStop = useCallback((event, node) => {
+    if (!reactFlowInstance) return;
+    
     setEdges((eds) => 
         eds.map((edge) => {
             // Only care about spouse edges involving the dragged node
