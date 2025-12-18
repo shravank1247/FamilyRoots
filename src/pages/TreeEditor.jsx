@@ -152,7 +152,7 @@ const defaultColor = '#D3D3D3';
                     data: { 
                         ...p, 
                         generation: level,
-                        bgColor: generationColors[level % 5] || defaultColor 
+                        bgColor: generationColors[level % 10] || defaultColor 
                     },
                     position: pos,
                     selected: selectedFullNode?.id === p.id,
