@@ -45,27 +45,42 @@ const getPhotoUrl = (path) => {
 
 // --- MAIN COMPONENT DECLARATION (MUST ONLY APPEAR ONCE) ---
 const CustomPersonNode = ({ data, selected }) => {
-    const { first_name, gender, generation } = data;
+    const { first_name, surname, gender, is_alive, profile_picture_url, generation } = data;
     
-    // 1. Gender Styling
+    // Gender-based styling
+    
     const genderIcon = gender === 'male' ? '♂️' : gender === 'female' ? '♀️' : '👤';
-    const borderStyle = gender === 'male' ? '3px solid #1890ff' : gender === 'female' ? '3px solid #eb2f96' : '1px solid #ddd';
+    const genderClass = gender ? `gender-${gender}` : 'gender-unknown';
+    
+    const initials = (first_name?.[0] || '') + (surname?.[0] || '');
+    const statusColor = is_alive === false ? '#ff4d4d' : '#52c41a';
+    const generationClass = `gen-${(generation || 0) % 5}`;
 
     return (
-        <div style={{ 
-            padding: '10px', 
-            borderRadius: '5px', 
-            background: 'white', 
-            border: selected ? '5px solid #ff9900' : borderStyle, // Selection takes priority
-            minWidth: '150px' 
-        }}>
+        <div className={`custom-person-node gen-${data.generation % 5} gender-${gender} ${selected ? 'selected' : ''}`}>
             <Handle type="target" position={Position.Top} id="parent-connect" />
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '20px' }}>{genderIcon}</span>
-                <div>
-                    <div style={{ fontWeight: 'bold' }}>{first_name}</div>
-                    <div style={{ fontSize: '10px', color: '#666' }}>Gen {generation}</div>
+            <div className="node-main-content">
+                {/* Gender Badge */}
+                <div className={`gender-indicator ${gender}`}>
+                {genderIcon}
+            </div>
+
+                <div className="profile-img-viz">
+                    {profile_picture_url ? (
+                        <img src={profile_picture_url} alt={first_name} className="person-photo" />
+                    ) : (
+                        <span className="initials-placeholder">{initials}</span>
+                    )}
+                </div>
+                
+                <div className="person-info-viz">
+                    <div className="header-viz">
+                        <div className="status-indicator" style={{ backgroundColor: statusColor }}></div>
+                        <div className="name-line">
+                            <strong>{first_name}</strong>
+                        </div>
+                    </div>
                 </div>
             </div>
 
