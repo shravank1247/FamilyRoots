@@ -181,12 +181,9 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
             birth_date: formData.birthDate || null,
             anniversary_date: formData.anniversaryDate || null,
             is_alive: formData.isAlive,
-            gender: formData.gender || null,
+            gender: formData.gender || null, // This now pulls from local state
             notes: formData.notes || null,
-            // Convert comma-separated string back to array for PostgreSQL
             tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [], 
-            
-            // CRITICAL: Preserve existing image URL if not being uploaded via widget
             profile_picture_url: formData.profilePictureUrl || person?.profile_picture_url || null, 
         };
 
@@ -295,17 +292,18 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
                     <label htmlFor="isAlive" className="inline-label">Is this person alive?</label>
                 </div>
                     <div className="form-group">
-                <label>Gender</label>
-                <select 
-                    value={person.gender || ''} 
-                    onChange={(e) => handleGenderChange(e.target.value)}
-                >
-                    <option value="">Not Specified</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
+                    <label>Gender</label>
+                    <select 
+                        id="gender" 
+                        value={formData.gender || ''} 
+                        onChange={handleFormChange}
+                    >
+                        <option value="">Not Specified</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
                 <div className="form-group">
                     <label>Anniversary Date</label>
                     <input type="date" id="anniversaryDate" value={formData.anniversaryDate || ''} onChange={handleFormChange} />
