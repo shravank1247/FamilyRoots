@@ -35,11 +35,6 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
     const cloudinaryRef = useRef();
     const widgetRef = useRef();
 
-    if (!person) return null;
-    const handleGenderChange = (newGender) => {
-        // This triggers the handleSidebarSave in TreeEditor immediately
-        onSave({ ...person, gender: newGender });
-    };
     
     // Helper function to load all people and current person's relations
     const loadAllPeopleAndRelations = async (personId) => {
@@ -80,8 +75,7 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
             surname: person.surname || '',
             birthDate: person.birth_date || '', 
             anniversaryDate: person.anniversary_date || '',
-            isAlive: person.is_alive !== false,
-            gender: person.gender || '', // Added this
+            isAlive: person.is_alive !== false, // Use strict non-false check
             notes: person.notes || '',
             tags: person.tags ? person.tags.join(', ') : '', 
             profilePictureUrl: person.profile_picture_url || ''
@@ -181,9 +175,12 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
             birth_date: formData.birthDate || null,
             anniversary_date: formData.anniversaryDate || null,
             is_alive: formData.isAlive,
-            gender: formData.gender || null, // This now pulls from local state
+            gender: formData.gender || null,
             notes: formData.notes || null,
+            // Convert comma-separated string back to array for PostgreSQL
             tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [], 
+            
+            // CRITICAL: Preserve existing image URL if not being uploaded via widget
             profile_picture_url: formData.profilePictureUrl || person?.profile_picture_url || null, 
         };
 
@@ -290,19 +287,6 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
                 <div className="form-group checkbox-group">
                     <input type="checkbox" id="isAlive" checked={formData.isAlive} onChange={handleFormChange} />
                     <label htmlFor="isAlive" className="inline-label">Is this person alive?</label>
-                </div>
-                    <div className="form-group">
-                    <label>Gender</label>
-                    <select 
-                        id="gender" 
-                        value={formData.gender || ''} 
-                        onChange={handleFormChange}
-                    >
-                        <option value="">Not Specified</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                    </select>
                 </div>
                 <div className="form-group">
                     <label>Anniversary Date</label>
