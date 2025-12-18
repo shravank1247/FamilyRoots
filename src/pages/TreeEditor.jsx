@@ -319,11 +319,13 @@ const TreeEditorRenderer = () => {
     }
 
     // 2. Update local state so the UI reflects the change immediately
-    setNodes(nds => nds.map(node => 
-        node.id === updatedPerson.id 
-            ? { ...node, data: { ...node.data, ...updatedPerson } } 
-            : node
-    ));
+    setNodes((nds) => 
+        nds.map((node) => 
+            node.id === updatedPerson.id 
+                ? { ...node, data: { ...node.data, ...updatedPerson } } 
+                : node
+        )
+    );
     
     setSelectedNodeData(updatedPerson); 
     console.log("Gender saved successfully:", updatedPerson.gender);

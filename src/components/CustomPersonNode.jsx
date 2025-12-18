@@ -45,41 +45,27 @@ const getPhotoUrl = (path) => {
 
 // --- MAIN COMPONENT DECLARATION (MUST ONLY APPEAR ONCE) ---
 const CustomPersonNode = ({ data, selected }) => {
-    const { first_name, surname, gender, is_alive, profile_picture_url, generation } = data;
+    const gender = data.gender || 'unknown';
     
-    // Gender-based styling
-    
-    const genderIcon = gender === 'male' ? '♂️' : gender === 'female' ? '♀️' : '👤';
-    const genderClass = gender ? `gender-${gender}` : 'gender-unknown';
-    
-    const initials = (first_name?.[0] || '') + (surname?.[0] || '');
-    const statusColor = is_alive === false ? '#ff4d4d' : '#52c41a';
-    const generationClass = `gen-${(generation || 0) % 5}`;
+    // Define clean styles based on gender
+    const getGenderStyle = () => {
+        if (gender === 'male') return { borderLeft: '6px solid #1890ff', background: '#f0f7ff' };
+        if (gender === 'female') return { borderLeft: '6px solid #eb2f96', background: '#fff0f6' };
+        return { borderLeft: '6px solid #ccc', background: '#fff' };
+    };
 
     return (
-        <div className={`custom-person-node ${generationClass} ${genderClass} ${selected ? 'selected' : ''}`}>
+        <div className="custom-node" style={{ 
+            ...getGenderStyle(), 
+            padding: '10px', 
+            borderRadius: '4px',
+            outline: selected ? '3px solid #ff9900' : 'none' 
+        }}>
             <Handle type="target" position={Position.Top} id="parent-connect" />
             
-            <div className="node-main-content">
-                {/* Gender Badge */}
-                <div className="gender-badge">{genderIcon}</div>
-
-                <div className="profile-img-viz">
-                    {profile_picture_url ? (
-                        <img src={profile_picture_url} alt={first_name} className="person-photo" />
-                    ) : (
-                        <span className="initials-placeholder">{initials}</span>
-                    )}
-                </div>
-                
-                <div className="person-info-viz">
-                    <div className="header-viz">
-                        <div className="status-indicator" style={{ backgroundColor: statusColor }}></div>
-                        <div className="name-line">
-                            <strong>{first_name}</strong>
-                        </div>
-                    </div>
-                </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span>{gender === 'male' ? '♂️' : gender === 'female' ? '♀️' : '👤'}</span>
+                <strong>{data.first_name}</strong>
             </div>
 
             <Handle type="source" position={Position.Bottom} id="child-connect" />
