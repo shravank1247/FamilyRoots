@@ -74,6 +74,7 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
             firstName: person.first_name || '',
             surname: person.surname || '',
             birthDate: person.birth_date || '', 
+            gender: person.gender || '',
             anniversaryDate: person.anniversary_date || '',
             isAlive: person.is_alive !== false, // Use strict non-false check
             notes: person.notes || '',
@@ -284,6 +285,31 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
                     <label>Birth Date</label>
                     <input type="date" id="birthDate" value={formData.birthDate || ''} onChange={handleFormChange} />
                 </div>
+                <div className="form-group">
+    <label>Gender</label>
+    <div className="gender-selection" style={{ display: 'flex', gap: '15px', marginTop: '5px' }}>
+        <label>
+            <input 
+                type="radio" 
+                id="gender" 
+                name="gender" 
+                value="male" 
+                checked={formData.gender === 'male'} 
+                onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+            /> Male
+        </label>
+        <label>
+            <input 
+                type="radio" 
+                id="gender" 
+                name="gender" 
+                value="female" 
+                checked={formData.gender === 'female'} 
+                onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+            /> Female
+        </label>
+    </div>
+</div>
                 <div className="form-group checkbox-group">
                     <input type="checkbox" id="isAlive" checked={formData.isAlive} onChange={handleFormChange} />
                     <label htmlFor="isAlive" className="inline-label">Is this person alive?</label>

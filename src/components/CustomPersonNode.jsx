@@ -48,7 +48,9 @@ const CustomPersonNode = ({ data, selected }) => {
     const fullName = `${data.first_name} ${data.surname || ''}`;
     const initials = (data.first_name?.[0] || '') + (data.surname?.[0] || '');
     
+    
     // Status and Generation logic
+    const genderClass = gender === 'male' ? 'gender-male' : gender === 'female' ? 'gender-female' : '';
     const statusColor = data.is_alive === false ? '#ff4d4d' : '#52c41a';
     const generationClass = `gen-${(data.generation || 0) % 5}`;
 
@@ -64,7 +66,7 @@ const CustomPersonNode = ({ data, selected }) => {
                     <span className="initials-placeholder">{initials || '?'}</span>
                 )}
             </div>
-            
+            <div className="gender-indicator">{gender === 'male' ? '♂️' : gender === 'female' ? '♀️' : ''}</div>
             <div className="person-info-viz">
                 <div className="header-viz">
                     <div className="status-indicator" style={{ backgroundColor: statusColor }}></div>

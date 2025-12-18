@@ -304,19 +304,16 @@ const TreeEditorRenderer = () => {
     }, [selectedFullNode, loadData]);
 
     const handleSidebarSave = useCallback(async (updatedPerson) => {
-    if (!updatedPersonData || !updatedPersonData.id) return;
+    if (!updatedPerson || !updatedPerson.id) return;
 
-    // 1. Prepare clean data for the database
-    const dbUpdates = {
-        first_name: updatedPersonData.first_name,
-        surname: updatedPersonData.surname,
-        gender: updatedPersonData.gender,
-        is_alive: updatedPersonData.is_alive,
-        birth_date: updatedPersonData.birth_date
-    };
-
-    // 2. Persist to Supabase
-    const { error } = await updatePerson(updatedPersonData.id, dbUpdates);
+    // Persist to Supabase
+    const { error } = await updatePerson(updatedPerson.id, {
+        first_name: updatedPerson.first_name,
+        surname: updatedPerson.surname,
+        gender: updatedPerson.gender, // Ensure gender is included in the payload
+        is_alive: updatedPerson.is_alive,
+        birth_date: updatedPerson.birth_date
+    });
 
     if (error) {
         console.error("Database update failed:", error);
@@ -326,12 +323,12 @@ const TreeEditorRenderer = () => {
     // 2. Update local state so the UI reflects the change immediately
     setNodes((nds) => 
         nds.map((node) => {
-            if (node.id === updatedPersonData.id) {
+            if (node.id === updatedPerson.id) {
                 return {
                     ...node,
                     data: {
                         ...node.data,
-                        ...updatedPersonData // Updates gender, name, etc.
+                        ...updatedPerson // Updates gender, name, etc.
                     }
                 };
             }
@@ -339,7 +336,7 @@ const TreeEditorRenderer = () => {
         })
     );
     
-    setSelectedNodeData(updatedPersonData);
+    setSelectedNodeData(updatedPerson);
     console.log("Gender saved successfully:", updatedPerson.gender);
     setSaveStatus('Changes Saved!');
     setTimeout(() => setSaveStatus(null), 2000);
