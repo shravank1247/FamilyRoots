@@ -48,6 +48,7 @@ const CustomPersonNode = ({ data, selected }) => {
     const { first_name, surname, gender, is_alive, profile_picture_url, generation } = data;
     
     // Gender-based styling
+    
     const genderIcon = gender === 'male' ? '♂️' : gender === 'female' ? '♀️' : '👤';
     const genderClass = gender ? `gender-${gender}` : 'gender-unknown';
     
@@ -56,12 +57,14 @@ const CustomPersonNode = ({ data, selected }) => {
     const generationClass = `gen-${(generation || 0) % 5}`;
 
     return (
-        <div className={`custom-person-node ${generationClass} ${genderClass} ${selected ? 'selected' : ''}`}>
+        <div className={`custom-person-node gen-${data.generation % 5} gender-${gender} ${selected ? 'selected' : ''}`}>
             <Handle type="target" position={Position.Top} id="parent-connect" />
             
             <div className="node-main-content">
                 {/* Gender Badge */}
-                <div className="gender-badge">{genderIcon}</div>
+                <div className={`gender-indicator ${gender}`}>
+                {genderIcon}
+            </div>
 
                 <div className="profile-img-viz">
                     {profile_picture_url ? (
