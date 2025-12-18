@@ -298,7 +298,7 @@ const TreeEditorRenderer = () => {
                             {saveStatus || '💾 Save Layout'}
                         </button>
                         <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
-                        <button className="secondary-btn" onClick={onLayout}>✨ Auto Arrange</button>
+                        {/* <button className="secondary-btn" onClick={onLayout}>✨ Auto Arrange</button> */}
                         <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
                         <a href="/dashboard" className="secondary-btn">← Back</a>
                     </div>
