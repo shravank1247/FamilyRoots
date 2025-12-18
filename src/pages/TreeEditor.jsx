@@ -136,19 +136,22 @@ const defaultColor = '#D3D3D3';
         if (!authUser) { navigate('/login'); return; }
         if (!familyId) return;
 
+        // Fetch Family Name using the service function
+        const { family, error: familyError } = await fetchFamilyById(familyId);
+        
+        if (!familyError && family && family.name) {
+            setTreeName(family.name); // This sets the actual name from DB
+        } else {
+            console.warn("Could not find family name, using fallback.");
+            setTreeName('Family Tree'); 
+        }
+
         const { people } = await fetchPeopleByFamily(familyId); 
         const { relationships } = await fetchRelationshipsByPerson(familyId);
         const rels = relationships || []; 
         
 
-        // Fetch Family Name using the service function
-    const { family, error: familyError } = await fetchFamilyById(familyId);
-    
-    if (!familyError && family) {
-        setTreeName(family.name);
-    } else {
-        setTreeName('Family Tree');
-    }
+        
 
 
         // --- FIX: AUTO-CREATE FIRST NODE IF TREE IS EMPTY ---

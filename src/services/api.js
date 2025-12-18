@@ -134,12 +134,24 @@ export async function saveProfilePictureUrl(personId, url) {
 }
 
 export const fetchFamilyById = async (familyId) => {
-    const { data, error } = await supabase
-        .from('families')
-        .select('name')
-        .eq('id', familyId)
-        .single();
-    return { family: data, error };
+    try {
+        const { data, error } = await supabase
+            .from('families')
+            .select('name')
+            .eq('id', familyId)
+            .maybeSingle(); // maybeSingle is safer than .single()
+
+        if (error) {
+            console.error("Database error fetching family:", error);
+            return { family: null, error };
+        }
+
+        console.log("Fetched Family Data:", data); // Check your console for this!
+        return { family: data, error: null };
+    } catch (err) {
+        console.error("System error fetching family:", err);
+        return { family: null, error: err };
+    }
 };
 
 export async function uploadProfilePicture(file, familyId, personId) {
