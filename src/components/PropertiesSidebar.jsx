@@ -35,6 +35,7 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
     const cloudinaryRef = useRef();
     const widgetRef = useRef();
 
+
     
     // Helper function to load all people and current person's relations
     const loadAllPeopleAndRelations = async (personId) => {
@@ -288,6 +289,18 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
                     <input type="checkbox" id="isAlive" checked={formData.isAlive} onChange={handleFormChange} />
                     <label htmlFor="isAlive" className="inline-label">Is this person alive?</label>
                 </div>
+                    <div className="form-group">
+                        <label>Gender</label>
+                        <select 
+                            value={person.gender || ''} 
+                            onChange={(e) => onSave({ ...person, gender: e.target.value })}
+                        >
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
                 <div className="form-group">
                     <label>Anniversary Date</label>
                     <input type="date" id="anniversaryDate" value={formData.anniversaryDate || ''} onChange={handleFormChange} />

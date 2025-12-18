@@ -131,5 +131,36 @@
 /* Generation 3 (Great-Grandchildren) */
 .custom-person-node.gen-3 {
     background-color: #f3f0ff; /* Light Purple */
-    border-color: #845ef7;
+}
+
+/* Gender-specific themes */
+.custom-person-node.gender-male {
+    border-left: 5px solid #1890ff; /* Blue accent */
+    background: linear-gradient(to right, #e6f7ff, #ffffff);
+}
+
+.custom-person-node.gender-female {
+    border-left: 5px solid #eb2f96; /* Pink accent */
+    background: linear-gradient(to right, #fff0f6, #ffffff);
+}
+
+.gender-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Ensure selected orange border still works */
+.custom-person-node.selected {
+    box-shadow: 0 0 0 3px #ff9900 !important;
 }
