@@ -50,13 +50,15 @@ const CustomPersonNode = ({ data, selected }) => {
     // 2. DEFINE INITIALS (Fixes the ReferenceError)
     const initials = (first_name?.[0] || '') + (surname?.[0] || '');
     
+    // Calculate Age and Status
+    const age = calculateAge(data.birth_date);
     const birthYear = data.birth_date ? new Date(data.birth_date).getFullYear() : 'N/A';
     // Use data.anniversary_date directly from the API response (if it exists)
     const anniversaryYear = data.anniversary_date ? new Date(data.anniversary_date).getFullYear() : null; 
 
      // Tags processing
     const tagsDisplay = data.tags && Array.isArray(data.tags) && data.tags.length > 0 ? data.tags.join(', ') : null;
-    
+
     // 3. Gender Logic
     const genderIcon = gender === 'male' ? '♂️' : gender === 'female' ? '♀️' : '👤';
     const genderBorder = gender === 'male' ? '3px solid #1890ff' : 
