@@ -29,6 +29,8 @@ import PropertiesSidebar from '../components/PropertiesSidebar';
 import CustomPersonNode from '../components/CustomPersonNode';
 import QuickAddButton from '../components/QuickAddButton'; 
 import SpouseEdge from '../components/SpouseEdge'; 
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const nodeTypes = { 
     personNode: CustomPersonNode,
@@ -68,6 +70,26 @@ const TreeEditorRenderer = () => {
         4: '#F08080', 
     };
     const defaultColor = '#D3D3D3';
+
+
+    const handlePrintTree = async () => {
+    const element = document.querySelector('.react-flow-container');
+    const canvas = await html2canvas(element, {
+        backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true, // Crucial for Cloudinary images
+        scale: 2 // Higher quality
+    });
+    
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`${treeName}-FamilyTree.pdf`);
+};
 
     // --- HELPERS ---
     const assignLevels = (people, relationships) => {
@@ -298,6 +320,7 @@ const TreeEditorRenderer = () => {
                         </button>
                         <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
                         <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
+                        <button className="secondary-btn" onClick={handlePrintTree}>🖨️ Print PDF</button>
                         <a href="/dashboard" className="secondary-btn">← Back</a>
                     </div>
                 </header>
