@@ -162,23 +162,22 @@ const TreeEditorRenderer = () => {
             if (!isSpouse && !isChild) return null;
 
             if (isSpouse) {
-                const sNode = people.find(p => p.id === rel.person_a_id);
-                const tNode = people.find(p => p.id === rel.person_b_id);
+                // const sNode = people.find(p => p.id === rel.person_a_id);
+                // const tNode = people.find(p => p.id === rel.person_b_id);
                 
-                const sX = sNode?.position_data?.x ?? 0;
-                const tX = tNode?.position_data?.x ?? 0;
+                // const sX = sNode?.position_data?.x ?? 0;
+                // const tX = tNode?.position_data?.x ?? 0;
 
-                // If Target is to the left of Source
-                const isTargetToLeft = tX < sX;
+                // // If Target is to the left of Source
+                // const isTargetToLeft = tX < sX;
 
                 return {
                     id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
                     source: rel.person_a_id,
                     target: rel.person_b_id,
                     type: 'spouseEdge',
-                    // If spouse is on the left: Source uses Left handle, Target uses Right handle
-                    sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
-                    targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
+                    sourceHandle: 'spouse-right',
+                    targetHandle: 'spouse-left',
                     data: { relId: rel.id, type: 'spouse' }
                 };
             }
@@ -327,31 +326,31 @@ const TreeEditorRenderer = () => {
         setSelectedNodeData(updatedPerson); 
     }, []);
 
-    // const onNodeDragStop = useCallback((event, node) => {
-    // if (!reactFlowInstance) return;
+    const onNodeDragStop = useCallback((event, node) => {
+    if (!reactFlowInstance) return;
     
-    // setEdges((eds) => 
-    //     eds.map((edge) => {
-    //         // Only care about spouse edges involving the dragged node
-    //         if (edge.type === 'spouseEdge' && (edge.source === node.id || edge.target === node.id)) {
-    //             const sourceNode = reactFlowInstance.getNode(edge.source);
-    //             const targetNode = reactFlowInstance.getNode(edge.target);
+    setEdges((eds) => 
+        eds.map((edge) => {
+            // Only care about spouse edges involving the dragged node
+            if (edge.type === 'spouseEdge' && (edge.source === node.id || edge.target === node.id)) {
+                const sourceNode = reactFlowInstance.getNode(edge.source);
+                const targetNode = reactFlowInstance.getNode(edge.target);
 
-    //             if (sourceNode && targetNode) {
-    //                 // Check if target is now to the left of the source
-    //                 const isTargetToLeft = targetNode.position.x < sourceNode.position.x;
+                if (sourceNode && targetNode) {
+                    // Check if target is now to the left of the source
+                    const isTargetToLeft = targetNode.position.x < sourceNode.position.x;
 
-    //                 return {
-    //                     ...edge,
-    //                     sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
-    //                     targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
-    //                 };
-    //             }
-    //         }
-    //         return edge;
-    //     })
-    // );
-// }, [reactFlowInstance, setEdges]);
+                    return {
+                        ...edge,
+                        sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
+                        targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
+                    };
+                }
+            }
+            return edge;
+        })
+    );
+}, [reactFlowInstance, setEdges]);
 
     return (
         <div className="tree-editor-wrapper">
