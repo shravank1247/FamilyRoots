@@ -139,6 +139,26 @@ const defaultColor = '#D3D3D3';
         const { relationships } = await fetchRelationshipsByPerson(familyId);
         const rels = relationships || []; 
         
+        // --- FIX: AUTO-CREATE FIRST NODE IF TREE IS EMPTY ---
+    if (!people || people.length === 0) {
+        console.log("Empty tree detected. Creating root node...");
+        const { person: rootPerson, error } = await createPerson({
+            first_name: "Root Ancestor",
+            surname: "Family",
+            gender: "male", // Default or 'other'
+            is_alive: true,
+            position_data: { x: 250, y: 50 }
+        }, familyId);
+
+        if (!error) {
+            // Re-run loadData to fetch the newly created person
+            loadData(); 
+        }
+        return;
+    }
+    // --- END FIX ---
+
+    
         const levelMap = assignLevels(people, rels);
 
          if (people && people.length > 0) {

@@ -71,13 +71,14 @@ const CustomPersonNode = ({ data, selected }) => {
     return (
         <div 
             className={`custom-person-node ${generationClass} ${selected ? 'selected' : ''}`}
-            // style={{ 
-            //     border: selected ? '5px solid #ff9900' : genderBorder,
-            //     backgroundColor: bgColor || '#ffffff',
-            //     borderRadius: '8px',
-            //     background: '#fff',
-            //     padding: '10px'
-            // }}
+            style={{ 
+            // 1. Force the background color from data
+            backgroundColor: data.bgColor || '#ffffff', 
+            // 2. Ensure your gender border logic is here
+            border: selected ? '5px solid #ff9900' : genderBorder,
+            borderRadius: '8px',
+            padding: '10px'
+        }}
         >
             <Handle type="target" position={Position.Top} id="parent-connect" />
             
