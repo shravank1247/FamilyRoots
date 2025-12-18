@@ -121,7 +121,6 @@ const TreeEditorRenderer = () => {
     }, [edges]); 
 
     // --- DATA LOADING ---
-
     const loadData = useCallback(async () => {
     const authUser = await checkAuth();
     if (!authUser) { navigate('/login'); return; }
@@ -131,10 +130,11 @@ const TreeEditorRenderer = () => {
     const { relationships } = await fetchRelationshipsByPerson(familyId);
     const rels = relationships || []; 
     
-    // 1. Calculate Generations
+    // 1. Calculate Generations for color coding
     const levelMap = assignLevels(people, rels);
 
     if (people && people.length > 0) {
+        // 2. Map People to Nodes FIRST so we can use them for Edge logic
         const initialNodes = people.map((p, index) => {
             const pos = p.position_data || { x: index * 250, y: Math.floor(index / 3) * 150 };
             const level = levelMap[p.id] || 0;
@@ -148,25 +148,24 @@ const TreeEditorRenderer = () => {
                     bgColor: generationColors[level % 5] || defaultColor 
                 },
                 position: pos,
-                // Restore selection state if this was the selected node
                 selected: selectedFullNode?.id === p.id,
                 style: selectedFullNode?.id === p.id ? { border: '5px solid #ff9900' } : {}
             };
         });
         
+        // 3. Map Relationships to Edges
         const initialEdges = rels.map(rel => {
             const isSpouse = rel.type === 'spouse';
             const isChild = rel.type === 'child';
 
-            // Skip any relationships that aren't spouse or child to keep the tree clean
             if (!isSpouse && !isChild) return null;
 
             if (isSpouse) {
-                // Find the nodes in the 'initialNodes' array we just mapped to get accurate positions
+                // Find nodes in the newly created initialNodes array
                 const sourceNode = initialNodes.find(n => n.id === rel.person_a_id);
                 const targetNode = initialNodes.find(n => n.id === rel.person_b_id);
                 
-                // Safety check: if nodes aren't found, default to right-side
+                // If target is to the left of source, swap handles
                 const isTargetToLeft = targetNode && sourceNode ? targetNode.position.x < sourceNode.position.x : false;
 
                 return {
@@ -174,7 +173,6 @@ const TreeEditorRenderer = () => {
                     source: rel.person_a_id,
                     target: rel.person_b_id,
                     type: 'spouseEdge',
-                    // Correct handle assignment based on relative position
                     sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
                     targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
                     data: { relId: rel.id, type: 'spouse' }
@@ -188,17 +186,21 @@ const TreeEditorRenderer = () => {
                 target: rel.person_b_id,
                 type: 'smoothstep',
                 borderRadius: 20,
-                markerEnd: { type: 'arrowclosed' }, // Added arrow for clarity
+                markerEnd: { type: 'arrowclosed' },
                 sourceHandle: 'child-connect',
-                targetHandle: 'parent-connect'
+                targetHandle: 'parent-connect',
+                data: { relId: rel.id, type: 'child' }
             };
         }).filter(e => e !== null);
 
+        // 4. RESTORED STATE UPDATES
         setNodes(initialNodes);
         setEdges(initialEdges); 
         setTreeName('Family Tree'); 
-        }
-    }, [familyId, navigate, selectedFullNode]);
+    }
+}, [familyId, navigate, selectedFullNode]);
+
+    
 
     useEffect(() => { loadData(); }, [loadData]);
 
