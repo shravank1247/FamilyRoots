@@ -30,11 +30,6 @@ import CustomPersonNode from '../components/CustomPersonNode';
 import QuickAddButton from '../components/QuickAddButton'; 
 import SpouseEdge from '../components/SpouseEdge'; 
 
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-
-
-
 const nodeTypes = { 
     personNode: CustomPersonNode,
     junction: (props) => (
@@ -75,27 +70,6 @@ const TreeEditorRenderer = () => {
         4: '#F08080', // Light Coral
     };
     const defaultColor = '#D3D3D3';
-
-
-    const handlePrintTree = async () => {
-    const element = document.querySelector('.react-flow-container');
-    const canvas = await html2canvas(element, {
-        backgroundColor: '#ffffff',
-        logging: false,
-        useCORS: true, // Crucial for Cloudinary images
-        scale: 2 // Higher quality
-    });
-    
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`${treeName}-FamilyTree.pdf`);
-};
-
 
     // --- HELPERS ---
 
@@ -157,10 +131,11 @@ const TreeEditorRenderer = () => {
     const { relationships } = await fetchRelationshipsByPerson(familyId);
     const rels = relationships || []; 
     
+    // 1. Calculate Generations for color coding
     const levelMap = assignLevels(people, rels);
 
     if (people && people.length > 0) {
-        // STEP 1: Map Nodes FIRST to get final UI positions
+        // 2. Map People to Nodes FIRST so we can use them for Edge logic
         const initialNodes = people.map((p, index) => {
             const pos = p.position_data || { x: index * 250, y: Math.floor(index / 3) * 150 };
             const level = levelMap[p.id] || 0;
@@ -179,7 +154,7 @@ const TreeEditorRenderer = () => {
             };
         });
         
-        // STEP 2: Map Edges using initialNodes for accurate position comparison
+        // 3. Map Relationships to Edges
         const initialEdges = rels.map(rel => {
             const isSpouse = rel.type === 'spouse';
             const isChild = rel.type === 'child';
@@ -187,24 +162,28 @@ const TreeEditorRenderer = () => {
             if (!isSpouse && !isChild) return null;
 
             if (isSpouse) {
-                const sNode = initialNodes.find(n => n.id === rel.person_a_id);
-                const tNode = initialNodes.find(n => n.id === rel.person_b_id);
+                const sNode = people.find(p => p.id === rel.person_a_id);
+                const tNode = people.find(p => p.id === rel.person_b_id);
                 
-                // Compare the actual mapped X positions
-                const isTargetToLeft = (tNode?.position?.x ?? 0) < (sNode?.position?.x ?? 0);
+                const sX = sNode?.position_data?.x ?? 0;
+                const tX = tNode?.position_data?.x ?? 0;
+
+                // If Target is to the left of Source
+                const isTargetToLeft = tX < sX;
 
                 return {
                     id: `e-${rel.person_a_id}-${rel.person_b_id}-spouse`,
                     source: rel.person_a_id,
                     target: rel.person_b_id,
                     type: 'spouseEdge',
-                    // Correct handshake logic
+                    // If spouse is on the left: Source uses Left handle, Target uses Right handle
                     sourceHandle: isTargetToLeft ? 'spouse-left' : 'spouse-right',
                     targetHandle: isTargetToLeft ? 'spouse-right' : 'spouse-left',
                     data: { relId: rel.id, type: 'spouse' }
                 };
             }
 
+            // Standard child logic connecting Top to Bottom
             return {
                 id: `e-${rel.person_a_id}-${rel.person_b_id}-child`,
                 source: rel.person_a_id,
@@ -348,7 +327,51 @@ const TreeEditorRenderer = () => {
         setSelectedNodeData(updatedPerson); 
     }, []);
 
-    const onNodeDragStop = useCallback((event, node) => {
+    return (
+        <div className="tree-editor-wrapper">
+            <main className="main-content-canvas">
+                <header className="canvas-header">
+                    <h2>{treeName} - Editor</h2>
+                    <div className="header-actions">
+                        <button className="secondary-btn" onClick={handleSaveLayout} disabled={saveStatus === 'Saving...'}>
+                            {saveStatus || '💾 Save Layout'}
+                        </button>
+                        <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
+                        {/* <button className="secondary-btn" onClick={onLayout}>✨ Auto Arrange</button> */}
+                        <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
+                        <a href="/dashboard" className="secondary-btn">← Back</a>
+                    </div>
+                </header>
+                <div className="react-flow-container">
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        onNodeClick={onNodeClick}
+                        onPaneClick={onPaneClick}
+                        nodeTypes={nodeTypes}
+                        edgeTypes={edgeTypes} 
+                        onNodeDragStop={onNodeDragStop}
+                        fitView
+                    >
+                        <Controls />
+                        <Background color="#aaa" gap={16} />
+                    </ReactFlow>
+                </div>
+            </main>
+            <PropertiesSidebar 
+                person={selectedNodeData} 
+                familyId={familyId} 
+                onSave={handleSidebarSave} 
+                onClose={() => setSelectedNodeData(null)}
+            />
+        </div>
+    );
+};
+
+const onNodeDragStop = useCallback((event, node) => {
     if (!reactFlowInstance) return;
     
     setEdges((eds) => 
@@ -373,53 +396,6 @@ const TreeEditorRenderer = () => {
         })
     );
 }, [reactFlowInstance, setEdges]);
-
-    return (
-        <div className="tree-editor-wrapper">
-            <main className="main-content-canvas">
-                <header className="canvas-header">
-                    <h2>{treeName} - Editor</h2>
-                    <div className="header-actions">
-                        <button className="secondary-btn" onClick={handleSaveLayout} disabled={saveStatus === 'Saving...'}>
-                            {saveStatus || '💾 Save Layout'}
-                        </button>
-                        <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
-                        {/* <button className="secondary-btn" onClick={onLayout}>✨ Auto Arrange</button> */}
-                        <button className="secondary-btn" onClick={handlePrintTree}>🖨️ Print PDF</button>
-                        <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
-                        <a href="/dashboard" className="secondary-btn">← Back</a>
-                    </div>
-                </header>
-                <div className="react-flow-container">
-                    <ReactFlow
-                        nodes={nodes}
-                        edges={edges}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
-                        onConnect={onConnect}
-                        onNodeClick={onNodeClick}
-                        onPaneClick={onPaneClick}
-                        onNodeDragStop={onNodeDragStop} // <--- ADD THIS LINE
-                        nodeTypes={nodeTypes}
-                        edgeTypes={edgeTypes} 
-                        fitView
-                    >
-                        <Controls />
-                        <Background color="#aaa" gap={16} />
-                    </ReactFlow>
-                </div>
-            </main>
-            <PropertiesSidebar 
-                person={selectedNodeData} 
-                familyId={familyId} 
-                onSave={handleSidebarSave} 
-                onClose={() => setSelectedNodeData(null)}
-            />
-        </div>
-    );
-};
-
-
 
 const TreeEditor = () => (
     <ReactFlowProvider>
