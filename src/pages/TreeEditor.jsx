@@ -64,13 +64,19 @@ const TreeEditorRenderer = () => {
 
     // --- GENERATION COLOR CONFIG ---
     const generationColors = {
-        0: '#FFD700', 
-        1: '#87CEEB', 
-        2: '#98FB98', 
-        3: '#DDA0DD', 
-        4: '#F08080', 
-    };
-    const defaultColor = '#D3D3D3';
+    0: '#FFD700', // Gold (Roots)
+    1: '#87CEEB', // Sky Blue
+    2: '#98FB98', // Pale Green
+    3: '#DDA0DD', // Plum
+    4: '#F08080', // Light Coral
+    5: '#40E0D0', // Turquoise
+    6: '#FF8C00', // Dark Orange
+    7: '#BA55D3', // Medium Orchid
+    8: '#B0C4DE', // Light Steel Blue
+    9: '#FFB6C1', // Light Pink
+};
+
+const defaultColor = '#D3D3D3';
 
 
     const handlePrintTree = async () => {
@@ -135,10 +141,14 @@ const TreeEditorRenderer = () => {
         
         const levelMap = assignLevels(people, rels);
 
+        const generationIndex = level % 10; // Always returns a number between 0 and 9
+const color = generationColors[generationIndex];
+
         if (people && people.length > 0) {
             const initialNodes = people.map((p, index) => {
                 const pos = p.position_data || { x: index * 250, y: Math.floor(index / 3) * 150 };
                 const level = levelMap[p.id] || 0;
+                const safeIndex = level % 10
                 
                 return {
                     id: p.id,
@@ -146,7 +156,7 @@ const TreeEditorRenderer = () => {
                     data: { 
                         ...p, 
                         generation: level,
-                        bgColor: generationColors[level % 5] || defaultColor 
+                        bgColor: generationColors[safeIndex] || defaultColor 
                     },
                     position: pos,
                     selected: selectedFullNode?.id === p.id,

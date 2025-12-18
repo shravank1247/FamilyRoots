@@ -45,7 +45,7 @@ const getPhotoUrl = (path) => {
 
 // --- MAIN COMPONENT DECLARATION (MUST ONLY APPEAR ONCE) ---
 const CustomPersonNode = ({ data, selected }) => {
-    const { first_name, surname, gender, is_alive, profile_picture_url, generation } = data;
+    const { first_name, surname, gender, is_alive, profile_picture_url, generation, bgColor } = data;
     
     // 2. DEFINE INITIALS (Fixes the ReferenceError)
     const initials = (first_name?.[0] || '') + (surname?.[0] || '');
@@ -72,6 +72,7 @@ const CustomPersonNode = ({ data, selected }) => {
             className={`custom-person-node ${generationClass} ${selected ? 'selected' : ''}`}
             style={{ 
                 border: selected ? '5px solid #ff9900' : genderBorder,
+                backgroundColor: bgColor,
                 borderRadius: '8px',
                 background: '#fff',
                 padding: '10px'
