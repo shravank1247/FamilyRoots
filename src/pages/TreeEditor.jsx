@@ -123,77 +123,62 @@ const TreeEditorRenderer = () => {
     // --- DATA LOADING ---
 
     const loadData = useCallback(async () => {
-        const authUser = await checkAuth();
-        if (!authUser) { navigate('/login'); return; }
-        if (!familyId) return;
+    const authUser = await checkAuth();
+    if (!authUser) { navigate('/login'); return; }
+    if (!familyId) return;
 
-        const { people } = await fetchPeopleByFamily(familyId); 
+    const { people } = await fetchPeopleByFamily(familyId); 
+    const { relationships } = await fetchRelationshipsByPerson(familyId);
+    const rels = relationships || []; 
+    
+    // 1. Calculate Generations
+    const levelMap = assignLevels(people, rels);
 
-        // Handle empty tree initialization
-        if (people && people.length === 0) {
-            const defaultPerson = {
-                first_name: "Root",
-                last_name: "Person",
-                is_alive: true,
-                position_data: { x: 250, y: 150 }
-            };
-            const { person: newRoot } = await createPerson(defaultPerson, familyId);
-            if (newRoot) {
-                setNodes([{
-                    id: newRoot.id,
-                    type: 'personNode',
-                    data: { ...newRoot, generation: 0, bgColor: generationColors[0] },
-                    position: newRoot.position_data,
-                }]);
-            }
-            return;
-        }
-
-        const { relationships } = await fetchRelationshipsByPerson(familyId);
-        const rels = relationships || []; 
-        
-        // --- GENERATION CALCULATION ---
-        const levelMap = assignLevels(people, rels);
-
-        if (people && people.length > 0) {
-            const initialNodes = people.map((p, index) => {
-                const pos = p.position_data || { x: index * 250, y: Math.floor(index / 3) * 150 };
-                const level = levelMap[p.id] || 0;
-                
-                return {
-                    id: p.id,
-                    type: 'personNode',
-                    data: { 
-                        ...p, 
-                        generation: level,
-                        bgColor: generationColors[level % 5] || defaultColor 
-                    },
-                    position: pos,
-                };
-            });
+    if (people && people.length > 0) {
+        const initialNodes = people.map((p, index) => {
+            const pos = p.position_data || { x: index * 250, y: Math.floor(index / 3) * 150 };
+            const level = levelMap[p.id] || 0;
             
-            const initialEdges = rels
-                .filter(rel => ['child', 'spouse'].includes(rel.type))
-                .map(rel => {
-                    const isSpouse = rel.type === 'spouse';
-                    return {
-                        id: `e-${rel.person_a_id}-${rel.person_b_id}-${rel.type}`,
-                        source: rel.person_a_id,
-                        target: rel.person_b_id,
-                        type: isSpouse ? 'spouseEdge' : 'smoothstep', 
-                        borderRadius: 20,
-                        markerEnd: isSpouse ? undefined : { type: 'arrowclosed' },
-                        sourceHandle: isSpouse ? 'spouse-right' : 'child-connect',
-                        targetHandle: isSpouse ? 'spouse-left' : 'parent-connect',
-                        data: { relId: rel.id, type: rel.type }
-                    };
-                });
+            return {
+                id: p.id,
+                type: 'personNode',
+                data: { 
+                    ...p, 
+                    generation: level,
+                    bgColor: generationColors[level % 5] || defaultColor 
+                },
+                position: pos,
+                // Restore selection state if this was the selected node
+                selected: selectedFullNode?.id === p.id,
+                style: selectedFullNode?.id === p.id ? { border: '5px solid #ff9900' } : {}
+            };
+        });
+        
+        const initialEdges = rels.map(rel => {
+            const isSpouse = rel.type === 'spouse';
+            const isChild = rel.type === 'child';
 
-            setNodes(initialNodes);
-            setEdges(initialEdges); 
-            setTreeName('Family Tree'); 
-        }
-    }, [familyId, navigate]);
+            if (!isSpouse && !isChild) return null;
+
+            return {
+                id: `e-${rel.person_a_id}-${rel.person_b_id}-${rel.type}`,
+                source: rel.person_a_id,
+                target: rel.person_b_id,
+                type: isSpouse ? 'spouseEdge' : 'smoothstep', 
+                borderRadius: 20,
+                markerEnd: isSpouse ? undefined : { type: 'arrowclosed' },
+                // IDs match the handles in your CustomPersonNode.jsx
+                sourceHandle: isSpouse ? 'spouse-right' : 'child-connect',
+                targetHandle: isSpouse ? 'spouse-left' : 'parent-connect',
+                data: { relId: rel.id, type: rel.type }
+            };
+        }).filter(e => e !== null);
+
+        setNodes(initialNodes);
+        setEdges(initialEdges); 
+        setTreeName('Family Tree'); 
+    }
+}, [familyId, navigate, selectedFullNode]);
 
     useEffect(() => { loadData(); }, [loadData]);
 
@@ -208,17 +193,12 @@ const TreeEditorRenderer = () => {
         setSelectedNodeData(node.data); 
         
         // Explicitly update nodes to apply the selection style
-        setNodes((nds) => nds.map((n) => {
-            if (n.id === node.id) {
-                return {
-                    ...n,
-                    selected: true,
-                    style: { ...n.style, border: '5px solid #ff9900' } // RESTORED BORDER
-                };
-            }
-            return { ...n, selected: false, style: { ...n.style, border: 'none' } };
-        }));
-    }, []);
+        setNodes((nds) => nds.map((n) => ({
+        ...n,
+        selected: n.id === node.id,
+        style: n.id === node.id ? { border: '5px solid #ff9900' } : { border: 'none' }
+    })));
+}, []);
     
 
     const onPaneClick = useCallback(() => {
@@ -239,46 +219,47 @@ const TreeEditorRenderer = () => {
     }, [nodes, edges, reactFlowInstance]);
 
     const onAddNode = useCallback(async (parentId, relationshipType) => {
-        const parentNode = nodes.find(n => n.id === parentId);
-        if (!parentNode) return;
+    const parentNode = nodes.find(n => n.id === parentId);
+    if (!parentNode) return;
 
-        const offset = 250; 
-        const { x, y } = parentNode.position;
-        
-        // Calculate new position
-        let newPos = { x: x, y: y + offset }; // Child
-        if (relationshipType === 'spouse') newPos = { x: x + offset, y: y };
-        
-        // 1. Create in Database
-        const { person: newPerson, error } = await createPerson({
-            first_name: `New ${relationshipType}`,
-            is_alive: true,
-            position_data: newPos
-        }, familyId);
+    const spouseId = getSpouseId(parentId);
+    const offset = 250;
+    const newPos = { 
+        x: relationshipType === 'spouse' ? parentNode.position.x + offset : parentNode.position.x, 
+        y: relationshipType === 'child' ? parentNode.position.y + offset : parentNode.position.y 
+    };
 
-        if (error) {
-            alert("Error adding node: " + error.message);
-            return;
+    // 1. Create Person
+    const { person: newPerson, error } = await createPerson({
+        first_name: `New ${relationshipType}`,
+        is_alive: true,
+        position_data: newPos
+    }, familyId);
+
+    if (error) return;
+
+    // 2. Build Relationships
+    const dbRelationships = [];
+    if (relationshipType === 'child') {
+        // Link to Parent A
+        dbRelationships.push({ family_id: familyId, person_a_id: parentId, person_b_id: newPerson.id, type: 'child' });
+        // Link to Parent B (Spouse) if exists
+        if (spouseId) {
+            dbRelationships.push({ family_id: familyId, person_a_id: spouseId, person_b_id: newPerson.id, type: 'child' });
         }
+    } else if (relationshipType === 'spouse') {
+        dbRelationships.push({ family_id: familyId, person_a_id: parentId, person_b_id: newPerson.id, type: 'spouse' });
+    }
 
-        // 2. Create Relationship in Database
-        const dbRel = [{ 
-            family_id: familyId, 
-            person_a_id: parentId, 
-            person_b_id: newPerson.id, 
-            type: relationshipType === 'spouse' ? 'spouse' : 'child' 
-        }];
-        await createRelationships(dbRel);
+    // 3. Save to DB
+    if (dbRelationships.length > 0) {
+        await createRelationships(dbRelationships);
+    }
 
-        // 3. Instead of just waiting for loadData, let's refresh manually 
-        // to ensure colors and links are recalculated correctly.
-        await loadData();
-        
-        // 4. Auto-select the newly created node
-        const newlyCreatedNode = { id: newPerson.id, data: newPerson };
-        onNodeClick(null, newlyCreatedNode);
-
-    }, [nodes, familyId, createPerson, createRelationships, loadData, onNodeClick]);
+    // 4. Refresh everything (Generations + Links)
+    await loadData();
+    
+}, [nodes, familyId, getSpouseId, loadData]);
 
     const handleSaveLayout = async () => {
         setSaveStatus('Saving...');
