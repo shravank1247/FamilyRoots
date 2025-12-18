@@ -45,69 +45,59 @@ const getPhotoUrl = (path) => {
 
 // --- MAIN COMPONENT DECLARATION (MUST ONLY APPEAR ONCE) ---
 const CustomPersonNode = ({ data, selected }) => {
-    const gender = data.gender || ''; 
-    const first_name = data.first_name || '';
-
-    // 2. Define the highlight style
+    const { first_name, surname, gender, is_alive, profile_picture_url, generation } = data;
+    
+    // 2. DEFINE INITIALS (Fixes the ReferenceError)
+    const initials = (first_name?.[0] || '') + (surname?.[0] || '');
+    
+    // 3. Gender Logic
+    const genderIcon = gender === 'male' ? '♂️' : gender === 'female' ? '♀️' : '👤';
     const genderBorder = gender === 'male' ? '3px solid #1890ff' : 
                          gender === 'female' ? '3px solid #eb2f96' : '1px solid #ddd';
-    const generationClass = `gen-${(data.generation || 0) % 5}`;
+    
+    const statusColor = is_alive === false ? '#ff4d4d' : '#52c41a';
+    const generationClass = `gen-${(generation || 0) % 5}`;
 
     return (
         <div 
-            className={`custom-person-node ${selected ? 'selected' : ''}`}
+            className={`custom-person-node ${generationClass} ${selected ? 'selected' : ''}`}
             style={{ 
                 border: selected ? '5px solid #ff9900' : genderBorder,
                 borderRadius: '8px',
-                padding: '10px',
-                background: '#fff'
+                background: '#fff',
+                padding: '10px'
             }}
         >
-            {/* Top/Bottom handles for Parent-Child relationships */}
             <Handle type="target" position={Position.Top} id="parent-connect" />
             
-            <div className="profile-img-viz">
-                {data.profile_picture_url ? (
-                    <img src={data.profile_picture_url} alt={fullName} className="person-photo" />
-                ) : (
-                    <span className="initials-placeholder">{initials || '?'}</span>
-                )}
-            </div>
-            <div className="node-content">
-                <strong>{first_name}</strong>
-                <span style={{ marginLeft: '5px', fontSize: '12px' }}>
-                    {gender === 'male' ? '♂️' : gender === 'female' ? '♀️' : ''}
-                </span>
-            </div>
-            <div className="person-info-viz">
-                <div className="header-viz">
-                    <div className="status-indicator" style={{ backgroundColor: statusColor }}></div>
-                    <div className="name-line">
-                        <strong>{data.first_name}</strong>
-                        <span className="surname-text">{data.surname || ''}</span>
+            <div className="node-main-content">
+                {/* Gender Badge */}
+                <div className="gender-badge" style={{ position: 'absolute', top: '-10px', right: '-10px', background: 'white', borderRadius: '50%', padding: '2px', border: '1px solid #ccc' }}>
+                    {genderIcon}
+                </div>
+
+                <div className="profile-img-viz">
+                    {profile_picture_url ? (
+                        <img src={profile_picture_url} alt={first_name} className="person-photo" />
+                    ) : (
+                        <span className="initials-placeholder">{initials}</span>
+                    )}
+                </div>
+                
+                <div className="person-info-viz">
+                    <div className="header-viz">
+                        <div className="status-indicator" style={{ backgroundColor: statusColor }}></div>
+                        <div className="name-line">
+                            <strong>{first_name}</strong>
+                            <span className="surname-text" style={{ marginLeft: '4px' }}>{surname || ''}</span>
+                        </div>
                     </div>
                 </div>
-                <p className="detail-line">DOB: {data.birth_date || 'N/A'}</p>
             </div>
 
             <Handle type="source" position={Position.Bottom} id="child-connect" />
-
-            {/* CRITICAL: Side handles for Spouses */}
-            {/* Left side handle */}
-<Handle 
-    type="source" 
-    position={Position.Left} 
-    id="spouse-left" 
-    style={{ top: '50%', background: '#ff69b4', width: '8px', height: '8px' }} 
-/>
-
-{/* Right side handle */}
-<Handle 
-    type="target" 
-    position={Position.Right} 
-    id="spouse-right" 
-    style={{ top: '50%', background: '#ff69b4', width: '8px', height: '8px' }} 
-/>
+            <Handle type="bidirectional" position={Position.Left} id="spouse-left" style={{ top: '50%' }} />
+            <Handle type="bidirectional" position={Position.Right} id="spouse-right" style={{ top: '50%' }} />
         </div>
     );
 };
