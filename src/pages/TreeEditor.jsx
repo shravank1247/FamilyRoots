@@ -99,6 +99,19 @@ const defaultColor = '#D3D3D3';
     pdf.save(`${treeName}-FamilyTree.pdf`);
 };
 
+// 1. Add state at the top of TreeEditorRenderer
+const [isEditMode, setIsEditMode] = useState(false);
+
+// 2. Add the toggle handler
+const toggleEditMode = () => {
+    setIsEditMode(!isEditMode);
+    // Clear selection when entering view mode to keep it clean
+    if (isEditMode) {
+        setSelectedNodeData(null);
+        setSelectedFullNode(null);
+    }
+};
+
     // --- HELPERS ---
     const assignLevels = (people, relationships) => {
         const levelMap = {};
@@ -391,13 +404,26 @@ const defaultColor = '#D3D3D3';
                 <header className="canvas-header">
                     <h2>{treeName}</h2>
                     <div className="header-actions">
-                        <button className="secondary-btn" onClick={handleSaveLayout} disabled={saveStatus === 'Saving...'}>
+                    <button 
+            className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
+            onClick={toggleEditMode}
+        >
+            {isEditMode ? '🔓 Edit Mode: ON' : '🔒 View Mode: Locked'}
+        </button>
+        {isEditMode && (
+            <>
+                <button className="secondary-btn" onClick={handleSaveLayout} disabled={saveStatus === 'Saving...'}>
                             {saveStatus || '💾 Save Layout'}
                         </button>
-                        <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
-                        <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
-                        <button className="secondary-btn" onClick={handlePrintTree}>🖨️ Print PDF</button>
-                        <a href="/dashboard" className="secondary-btn">← Back</a>
+                <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
+                <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
+            </>
+        )}
+        
+        <button className="secondary-btn" onClick={handlePrintTree}>🖨️ Print PDF</button>
+        <a href="/dashboard" className="secondary-btn">← Back</a>
+        
+                        
                     </div>
                 </header>
                 <div className="react-flow-container">
@@ -406,12 +432,17 @@ const defaultColor = '#D3D3D3';
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
+                        onNodeClick={isEditMode ? onNodeClick : undefined} // Disable sidebar trigger in view mode
                         onConnect={onConnect}
-                        onNodeClick={onNodeClick}
                         onPaneClick={onPaneClick}
                         onNodeDragStop={onNodeDragStop}
                         nodeTypes={nodeTypes}
                         edgeTypes={edgeTypes} 
+                        // --- CONTROL INTERACTIVITY HERE ---
+                        nodesDraggable={isEditMode}
+                        nodesConnectable={isEditMode}
+                        elementsSelectable={isEditMode}
+                        panOnDrag={true} // Always allow moving across the canvas
                         fitView
                     >
                         <Controls />

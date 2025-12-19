@@ -220,3 +220,20 @@
     color: #555;
     font-weight: 500;
 }
+
+.edit-active {
+    background-color: #fff1f0 !important;
+    border: 1px solid #ffa39e !important;
+    color: #cf1322 !important;
+}
+
+.view-active {
+    background-color: #f6ffed !important;
+    border: 1px solid #b7eb8f !important;
+    color: #389e0d !important;
+}
+
+/* Optional: change cursor when locked */
+.react-flow-container:not(.edit-mode) .react-flow__node {
+    cursor: default !important;
+}
