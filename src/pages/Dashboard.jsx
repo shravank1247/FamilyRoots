@@ -121,10 +121,6 @@ const Dashboard = () => {
 
     
 
-    const Dashboard = () => {
-    // ... existing states (user, families, showModal, treeName, etc.)
-    const [isMenuOpen, setIsMenuOpen] = useState(false); // Add this for mobile toggle
-
     return (
         <div id="app-wrapper" className={isMenuOpen ? 'menu-open' : ''}>
             {/* Mobile Menu Toggle Button */}
@@ -186,8 +182,6 @@ const Dashboard = () => {
             </Modal>
         </div>
     );
-};
-  
 };
 
 export default Dashboard;
