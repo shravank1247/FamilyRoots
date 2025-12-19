@@ -1,0 +1,81 @@
+/* General Layout */
+#app-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+#sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+#main-content {
+    flex-grow: 1;
+    padding: 30px;
+    width: 100%;
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+.mobile-menu-toggle {
+    display: none; /* Hidden on desktop */
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1100;
+    background: #4A90E2;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 20px;
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-toggle {
+        display: block; /* Show on mobile */
+    }
+
+    #sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
+        transform: translateX(-100%); /* Hide sidebar off-screen */
+    }
+
+    /* When menu-open class is added to app-wrapper */
+    .menu-open #sidebar {
+        transform: translateX(0); /* Slide sidebar in */
+        box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+    }
+
+    #main-content {
+        padding: 80px 15px 20px 15px; /* Add top padding for toggle button */
+    }
+
+    .main-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    /* Tree Grid adjustment */
+    .tree-grid {
+        display: grid;
+        grid-template-columns: 1fr !important; /* One card per row on small phones */
+        gap: 15px;
+    }
+}
+
+/* Form Responsiveness */
+@media (max-width: 480px) {
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .form-actions button {
+        width: 100%;
+    }
+}

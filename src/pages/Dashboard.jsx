@@ -108,6 +108,8 @@ const Dashboard = () => {
             }
         }
     };
+
+    
     
     const handleViewTree = (familyId) => {
         navigate(`/tree-editor/${familyId}`); 
@@ -117,17 +119,29 @@ const Dashboard = () => {
         return <div className="loading-state">Loading application...</div>;
     }
 
+    
+
+    const Dashboard = () => {
+    // ... existing states (user, families, showModal, treeName, etc.)
+    const [isMenuOpen, setIsMenuOpen] = useState(false); // Add this for mobile toggle
+
     return (
-        <div id="app-wrapper">
+        <div id="app-wrapper" className={isMenuOpen ? 'menu-open' : ''}>
+            {/* Mobile Menu Toggle Button */}
+            <button className="mobile-menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                {isMenuOpen ? '✕' : '☰'}
+            </button>
+
             <aside id="sidebar">
                 <div className="sidebar-header">
                     <h1 className="app-title">FamilyRoots</h1>
                     <p id="user-display" className="user-info">{user?.email}</p>
                 </div>
                 <nav className="main-nav">
-                    <button onClick={() => navigate('/dashboard')} className="nav-link active">🏠 My Family Trees</button>
-                    <button onClick={() => setShowModal(true)} className="nav-link">➕ Start New Tree</button>
-                    <button onClick={() => navigate('/profile')} className="nav-link">👤 Edit Profile</button>
+                    {/* Added setIsMenuOpen(false) so it closes after clicking on mobile */}
+                    <button onClick={() => { navigate('/dashboard'); setIsMenuOpen(false); }} className="nav-link active">🏠 My Family Trees</button>
+                    <button onClick={() => { setShowModal(true); setIsMenuOpen(false); }} className="nav-link">➕ Start New Tree</button>
+                    <button onClick={() => { navigate('/profile'); setIsMenuOpen(false); }} className="nav-link">👤 Edit Profile</button>
                 </nav>
                 <div className="sidebar-footer">
                     <button onClick={signOut} className="secondary-btn">Sign Out</button>
@@ -140,6 +154,9 @@ const Dashboard = () => {
                     <button onClick={() => setShowModal(true)} className="primary-btn">Create New Tree</button>
                 </header>
                 
+                {/* The Grid logic remains exactly the same, 
+                   we handle the responsiveness in CSS below 
+                */}
                 <div className="tree-grid">
                     {families.length > 0 ? (
                         families.map(family => (
@@ -163,27 +180,14 @@ const Dashboard = () => {
                 {message && <p className="status-message">{message}</p>}
             </main>
 
+            {/* Modal remains unchanged */}
             <Modal show={showModal} onClose={() => setShowModal(false)} title="Start a New Family Tree">
-                <form onSubmit={handleCreateTree} className="form-content">
-                    <div className="form-group">
-                        <label htmlFor="tree-name">Family Tree Name</label>
-                        <input 
-                            type="text" 
-                            id="tree-name" 
-                            required 
-                            value={treeName} 
-                            onChange={(e) => setTreeName(e.target.value)}
-                            placeholder="e.g., The Smith Family History"
-                        />
-                    </div>
-                    <div className="form-actions">
-                        <button type="button" onClick={() => setShowModal(false)} className="secondary-btn">Cancel</button>
-                        <button type="submit" className="primary-btn">Create Tree</button>
-                    </div>
-                </form>
+                {/* ... existing form ... */}
             </Modal>
         </div>
     );
+};
+  
 };
 
 export default Dashboard;
