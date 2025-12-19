@@ -99,6 +99,30 @@ const defaultColor = '#D3D3D3';
     pdf.save(`${treeName}-FamilyTree.pdf`);
 };
 
+
+//to filter on canvas
+const [filterText, setFilterText] = useState('');
+
+// This effect runs whenever filterText changes
+useEffect(() => {
+    setNodes((nds) =>
+        nds.map((node) => {
+            const matches = node.data.first_name.toLowerCase().includes(filterText.toLowerCase()) ||
+                          (node.data.surname || '').toLowerCase().includes(filterText.toLowerCase());
+            
+            return {
+                ...node,
+                style: {
+                    ...node.style,
+                    opacity: filterText === '' || matches ? 1 : 0.2, // Dim non-matches
+                    transition: 'opacity 0.3s ease',
+                },
+            };
+        })
+    );
+}, [filterText, setNodes]);
+
+
 // re-centers the tree when a node is selected.
 useEffect(() => {
     if (selectedFullNode && reactFlowInstance) {
@@ -427,20 +451,30 @@ const toggleEditMode = () => {
                 <header className="canvas-header">
                     <h2>{treeName}</h2>
                     <div className="header-actions">
+                        <div className="search-container">
+                            <input 
+                                type="text" 
+                                placeholder="🔍 Filter by name..." 
+                                value={filterText}
+                                onChange={(e) => setFilterText(e.target.value)}
+                                className="search-input"
+                            />
+                            {filterText && <button onClick={() => setFilterText('')} className="clear-search">✕</button>}
+                        </div>
                         <button className="secondary-btn mobile-icon-btn" onClick={handleRecenter} title="Recenter Tree">
-        🎯 <span className="hide-on-mobile">Recenter</span>
-    </button>
+                            🎯 <span className="hide-on-mobile">Recenter</span>
+                        </button>
                     <button 
-            className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
-            onClick={toggleEditMode}
-        >
-            {isEditMode ? '🔓 Edit Mode: ON' : '🔒 View Mode: Locked'}
-        </button>
+                        className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
+                        onClick={toggleEditMode}
+                        >
+                        {isEditMode ? '🔓 Edit Mode: ON' : '🔒 View Mode: Locked'}
+                    </button>
         {isEditMode && (
             <>
                 <button className="secondary-btn" onClick={handleSaveLayout} disabled={saveStatus === 'Saving...'}>
                             {saveStatus || '💾 Save Layout'}
-                        </button>
+                </button>
                 <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
                 <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
             </>
