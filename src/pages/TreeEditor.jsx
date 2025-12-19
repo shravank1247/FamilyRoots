@@ -104,18 +104,38 @@ const defaultColor = '#D3D3D3';
 const [filterText, setFilterText] = useState('');
 
 // This effect runs whenever filterText changes
+// src/pages/TreeEditor.jsx
+
 useEffect(() => {
     setNodes((nds) =>
         nds.map((node) => {
-            const matches = node.data.first_name.toLowerCase().includes(filterText.toLowerCase()) ||
-                          (node.data.surname || '').toLowerCase().includes(filterText.toLowerCase());
+            const searchTerm = filterText.toLowerCase();
+            
+            // 1. Name Check
+            const nameMatch = node.data.first_name?.toLowerCase().includes(searchTerm) ||
+                             (node.data.surname || '').toLowerCase().includes(searchTerm);
+            
+            // 2. Gender Check
+            const genderMatch = node.data.gender?.toLowerCase() === searchTerm;
+
+            // 3. Date of Birth (Year) Check
+            const dobMatch = node.data.birth_date?.includes(searchTerm);
+
+            // 4. Tags Check (checks if any tag contains the search string)
+            const tagsMatch = node.data.tags?.some(tag => 
+                tag.toLowerCase().includes(searchTerm)
+            );
+
+            // Combine all matches
+            const isVisible = filterText === '' || nameMatch || genderMatch || dobMatch || tagsMatch;
             
             return {
                 ...node,
                 style: {
                     ...node.style,
-                    opacity: filterText === '' || matches ? 1 : 0.2, // Dim non-matches
+                    opacity: isVisible ? 1 : 0.15, // Dims others more significantly
                     transition: 'opacity 0.3s ease',
+                    pointerEvents: isVisible ? 'all' : 'none', // Prevents clicking dimmed nodes
                 },
             };
         })
@@ -454,7 +474,7 @@ const toggleEditMode = () => {
                         <div className="search-container">
                             <input 
                                 type="text" 
-                                placeholder="🔍 Filter by name..." 
+                                placeholder="🔍 Search name, year, gender, or tag..." 
                                 value={filterText}
                                 onChange={(e) => setFilterText(e.target.value)}
                                 className="search-input"
