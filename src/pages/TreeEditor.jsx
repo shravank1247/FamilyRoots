@@ -418,6 +418,23 @@ const toggleEditMode = () => {
         setTimeout(() => setSaveStatus(null), 2000);
     };
 
+
+    // Inside TreeEditorRenderer component
+    const getStats = () => {
+        return nodes.reduce((acc, node) => {
+            const { gender, is_alive } = node.data;
+            
+            if (gender === 'male') acc.males++;
+            if (gender === 'female') acc.females++;
+            if (is_alive === false) acc.deceased++;
+            acc.total++;
+            
+            return acc;
+        }, { males: 0, females: 0, deceased: 0, total: 0 });
+    };
+
+const stats = getStats();
+
     const handleDeleteSelected = useCallback(async () => {
         if (!selectedFullNode) return;
         if (!window.confirm(`Delete ${selectedFullNode.data.first_name}?`)) return;
@@ -534,6 +551,27 @@ const toggleEditMode = () => {
                         <Background color="#aaa" gap={8} />
                         
                     </ReactFlow>
+
+
+                    <div className="canvas-stats-panel">
+    <div className="stats-item total">
+        <span className="stats-label">Total Nodes</span>
+        <span className="stats-value">{stats.total}</span>
+    </div>
+    <div className="stats-divider" />
+    <div className="stats-item">
+        <span className="stats-icon">♂️</span>
+        <span className="stats-value">{stats.males}</span>
+    </div>
+    <div className="stats-item">
+        <span className="stats-icon">♀️</span>
+        <span className="stats-value">{stats.females}</span>
+    </div>
+    <div className="stats-item">
+        <span className="stats-icon">⚰️</span>
+        <span className="stats-value">{stats.deceased}</span>
+    </div>
+</div>
                 </div>
             </main>
             <PropertiesSidebar 
