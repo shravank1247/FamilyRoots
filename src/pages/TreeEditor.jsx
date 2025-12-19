@@ -99,6 +99,29 @@ const defaultColor = '#D3D3D3';
     pdf.save(`${treeName}-FamilyTree.pdf`);
 };
 
+// re-centers the tree when a node is selected.
+useEffect(() => {
+    if (selectedFullNode && reactFlowInstance) {
+        const isMobile = window.innerWidth <= 768;
+        
+        // On mobile, we move the node slightly "up" (subtracting from Y)
+        // so it sits above the bottom-sheet sidebar.
+        reactFlowInstance.setCenter(
+            selectedFullNode.position.x + 75, // Center of node width
+            isMobile ? selectedFullNode.position.y - 150 : selectedFullNode.position.y, 
+            { zoom: 0.9, duration: 600 }
+        );
+    }
+}, [selectedFullNode, reactFlowInstance]);
+
+//recenter 
+const handleRecenter = () => {
+    if (reactFlowInstance) {
+        reactFlowInstance.fitView({ duration: 800, padding: 0.2 });
+    }
+};
+
+
 // 1. Add state at the top of TreeEditorRenderer
 const [isEditMode, setIsEditMode] = useState(false);
 
@@ -404,6 +427,9 @@ const toggleEditMode = () => {
                 <header className="canvas-header">
                     <h2>{treeName}</h2>
                     <div className="header-actions">
+                        <button className="secondary-btn mobile-icon-btn" onClick={handleRecenter} title="Recenter Tree">
+        🎯 <span className="hide-on-mobile">Recenter</span>
+    </button>
                     <button 
             className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
             onClick={toggleEditMode}
@@ -444,9 +470,14 @@ const toggleEditMode = () => {
                         elementsSelectable={isEditMode}
                         panOnDrag={true} // Always allow moving across the canvas
                         fitView
+                        fitViewOptions={{ padding: 0.2 }} // Adds 20% margin so nodes don't touch edges
+                        minZoom={0.2}
+                        maxZoom={1.5}
+                        // Enable touch gestures for mobile
+                        preventScrolling={false}
                     >
-                        <Controls />
-                        <Background color="#aaa" gap={16} />
+                        <Controls showInteractive={false}/> {/* Simplify controls for mobile */}
+                        <Background color="#aaa" gap={8} />
                         
                     </ReactFlow>
                 </div>

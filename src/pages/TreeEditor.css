@@ -237,3 +237,74 @@
 .react-flow-container:not(.edit-mode) .react-flow__node {
     cursor: default !important;
 }
+
+/* src/pages/TreeEditor.css */
+
+/* 1. Header Responsiveness */
+.canvas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    flex-wrap: wrap; /* Allows buttons to wrap on small screens */
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .canvas-header h2 {
+        font-size: 1.2rem;
+        width: 100%; /* Title takes full width on mobile */
+        text-align: center;
+    }
+    
+    .header-actions {
+        justify-content: center;
+        width: 100%;
+    }
+
+    /* 2. Sidebar to Bottom Sheet Transformation */
+    .properties-sidebar {
+        width: 100% !important;
+        height: 60vh !important;
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        top: auto !important; /* Remove top constraint */
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+        z-index: 1000;
+        transform: translateY(0);
+        transition: transform 0.3s ease-in-out;
+    }
+}
+
+/* src/pages/TreeEditor.css */
+
+/* Make handles easier to touch on mobile */
+@media (max-width: 768px) {
+    .react-flow__handle {
+        width: 12px !important;
+        height: 12px !important;
+        background: #555 !important;
+    }
+
+    .hide-on-mobile {
+        display: none;
+    }
+
+    .mobile-icon-btn {
+        padding: 8px 12px;
+        font-size: 1.2rem;
+    }
+
+    /* Prevent the toolbar from covering the top of the canvas */
+    .tree-editor-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+
+    .react-flow-container {
+        flex-grow: 1;
+    }
+}
