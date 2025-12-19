@@ -108,8 +108,6 @@ const Dashboard = () => {
             }
         }
     };
-
-    
     
     const handleViewTree = (familyId) => {
         navigate(`/tree-editor/${familyId}`); 
@@ -119,25 +117,23 @@ const Dashboard = () => {
         return <div className="loading-state">Loading application...</div>;
     }
 
-    
+    const sortedFamilies = [...families].sort((a, b) => {
+    // This handles alphabetical sorting (A to Z)
+    // .toLowerCase() ensures "apple" and "Apple" are treated correctly
+    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+});
 
     return (
-        <div id="app-wrapper" className={isMenuOpen ? 'menu-open' : ''}>
-            {/* Mobile Menu Toggle Button */}
-            <button className="mobile-menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                {isMenuOpen ? '✕' : '☰'}
-            </button>
-
+        <div id="app-wrapper">
             <aside id="sidebar">
                 <div className="sidebar-header">
                     <h1 className="app-title">FamilyRoots</h1>
                     <p id="user-display" className="user-info">{user?.email}</p>
                 </div>
                 <nav className="main-nav">
-                    {/* Added setIsMenuOpen(false) so it closes after clicking on mobile */}
-                    <button onClick={() => { navigate('/dashboard'); setIsMenuOpen(false); }} className="nav-link active">🏠 My Family Trees</button>
-                    <button onClick={() => { setShowModal(true); setIsMenuOpen(false); }} className="nav-link">➕ Start New Tree</button>
-                    <button onClick={() => { navigate('/profile'); setIsMenuOpen(false); }} className="nav-link">👤 Edit Profile</button>
+                    <button onClick={() => navigate('/dashboard')} className="nav-link active">🏠 My Family Trees</button>
+                    <button onClick={() => setShowModal(true)} className="nav-link">➕ Start New Tree</button>
+                    <button onClick={() => navigate('/profile')} className="nav-link">👤 Edit Profile</button>
                 </nav>
                 <div className="sidebar-footer">
                     <button onClick={signOut} className="secondary-btn">Sign Out</button>
@@ -150,12 +146,9 @@ const Dashboard = () => {
                     <button onClick={() => setShowModal(true)} className="primary-btn">Create New Tree</button>
                 </header>
                 
-                {/* The Grid logic remains exactly the same, 
-                   we handle the responsiveness in CSS below 
-                */}
                 <div className="tree-grid">
-                    {families.length > 0 ? (
-                        families.map(family => (
+                    {sortedFamilies.length > 0 ? (
+                        sortedFamilies.map(family => (
                             <FamilyTreeCard 
                                 key={family.id} 
                                 family={family} 
@@ -176,9 +169,24 @@ const Dashboard = () => {
                 {message && <p className="status-message">{message}</p>}
             </main>
 
-            {/* Modal remains unchanged */}
             <Modal show={showModal} onClose={() => setShowModal(false)} title="Start a New Family Tree">
-                {/* ... existing form ... */}
+                <form onSubmit={handleCreateTree} className="form-content">
+                    <div className="form-group">
+                        <label htmlFor="tree-name">Family Tree Name</label>
+                        <input 
+                            type="text" 
+                            id="tree-name" 
+                            required 
+                            value={treeName} 
+                            onChange={(e) => setTreeName(e.target.value)}
+                            placeholder="e.g., The Smith Family History"
+                        />
+                    </div>
+                    <div className="form-actions">
+                        <button type="button" onClick={() => setShowModal(false)} className="secondary-btn">Cancel</button>
+                        <button type="submit" className="primary-btn">Create Tree</button>
+                    </div>
+                </form>
             </Modal>
         </div>
     );

@@ -1,81 +1,75 @@
-/* General Layout */
+/* src/pages/Dashboard.css */
+
 #app-wrapper {
     display: flex;
     min-height: 100vh;
+    width: 100%;
 }
 
 #sidebar {
     width: 260px;
-    flex-shrink: 0;
-    transition: transform 0.3s ease;
+    background-color: #f8f9fa; /* Example color */
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    flex-shrink: 0; /* Prevents sidebar from shrinking */
 }
 
 #main-content {
     flex-grow: 1;
     padding: 30px;
-    width: 100%;
+    background-color: #fff;
+    overflow-y: auto;
 }
 
-/* --- MOBILE RESPONSIVENESS --- */
-.mobile-menu-toggle {
-    display: none; /* Hidden on desktop */
-    position: fixed;
-    top: 15px;
-    left: 15px;
-    z-index: 1100;
-    background: #4A90E2;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    font-size: 20px;
-}
-
-@media (max-width: 768px) {
-    .mobile-menu-toggle {
-        display: block; /* Show on mobile */
+/* --- RESPONSIVE TRANSITION --- */
+@media (max-width: 900px) {
+    #app-wrapper {
+        flex-direction: column; /* Stack sidebar on top of main content */
     }
 
     #sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        z-index: 1000;
-        transform: translateX(-100%); /* Hide sidebar off-screen */
+        width: 100%; /* Take full width on tablet/mobile */
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        padding: 15px;
     }
 
-    /* When menu-open class is added to app-wrapper */
-    .menu-open #sidebar {
-        transform: translateX(0); /* Slide sidebar in */
-        box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+    .main-nav {
+        display: flex;
+        flex-wrap: wrap; /* Buttons will wrap to next line if needed */
+        gap: 10px;
+        margin: 15px 0;
     }
 
+    .nav-link {
+        flex: 1; /* Buttons grow to fill space */
+        min-width: 140px; 
+        justify-content: center;
+    }
+
+    .sidebar-header {
+        text-align: center;
+    }
+}
+
+@media (max-width: 600px) {
     #main-content {
-        padding: 80px 15px 20px 15px; /* Add top padding for toggle button */
+        padding: 15px;
     }
 
     .main-header {
         flex-direction: column;
-        gap: 15px;
+        align-items: stretch;
+        gap: 10px;
         text-align: center;
     }
 
-    /* Tree Grid adjustment */
+    /* Make the grid fit mobile screens */
     .tree-grid {
         display: grid;
-        grid-template-columns: 1fr !important; /* One card per row on small phones */
+        grid-template-columns: 1fr !important; /* Force single column on small phones */
         gap: 15px;
-    }
-}
-
-/* Form Responsiveness */
-@media (max-width: 480px) {
-    .form-actions {
-        flex-direction: column;
-        gap: 10px;
-    }
-    .form-actions button {
-        width: 100%;
     }
 }
