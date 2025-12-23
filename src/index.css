@@ -65,4 +65,64 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+
+  
 }
+
+/* GLOBAL THEME UPDATES */
+:root {
+  --primary-green: #2d6a4f;
+  --light-green: #d8f3dc;
+  --sidebar-bg: #f8fbf9;
+  --text-main: #1b4332;
+  --border-color: #ced4da;
+}
+
+/* 1. Sidebar & Properties Panel */
+.sidebar, .properties-sidebar {
+    background-color: var(--sidebar-bg) !important;
+    color: var(--text-main) !important;
+    border-left: 1px solid var(--border-color);
+}
+
+/* 2. Toolbar & General Buttons */
+/* This targets buttons that were previously black */
+button, .toolbar-btn, .rename-btn {
+    background-color: var(--primary-green) !important;
+    color: white !important;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover, .toolbar-btn:hover {
+    background-color: #1b4332 !important; /* Darker green on hover */
+}
+
+/* 3. Fixing the Radio Buttons (High Visibility) */
+/* Standard radio buttons can be hard to see; we'll give them a green accent */
+input[type="radio"] {
+    accent-color: var(--primary-green);
+    transform: scale(1.2); /* Makes them slightly larger/easier to click */
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+/* 4. Inputs and Text Areas in Sidebars */
+input[type="text"], select, textarea {
+    background-color: #ffffff !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+/* 5. Labels and Headers */
+h1, h2, h3, label {
+    color: var(--primary-green) !important;
+}
+
+
+
