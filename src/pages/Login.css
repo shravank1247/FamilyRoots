@@ -1,85 +1,78 @@
-/* Container to center the card on screen */
 .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #f4f7f6;
+  background-color: #f8fbf9;
   padding: 20px;
 }
 
-/* The Login Card */
 .login-card {
   background: #ffffff;
   width: 100%;
   max-width: 400px;
   padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
   text-align: center;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #e8eee9;
 }
 
 .app-name {
-  color: #2d6a4f; /* Elegant Green */
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  margin-bottom: 10px;
+  color: #2d6a4f;
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 8px;
 }
 
 .divider-line {
-  height: 3px;
-  width: 40px;
+  height: 4px;
+  width: 30px;
   background-color: #2d6a4f;
   margin: 0 auto 30px auto;
-  border-radius: 2px;
+  border-radius: 10px;
 }
 
 .content-section h2 {
-  font-size: 20px;
-  color: #333;
-  margin-bottom: 10px;
+  font-size: 22px;
+  color: #1a1a1a;
+  margin-bottom: 12px;
 }
 
 .content-section p {
-  font-size: 14px;
-  color: #777;
+  font-size: 15px;
+  color: #666;
   margin-bottom: 40px;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
-/* Custom Google Button - Branded for your app */
 .google-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 14px;
+  padding: 16px;
   background-color: #ffffff;
-  border: 2px solid #2d6a4f;
-  border-radius: 12px;
+  border: 1.5px solid #dcdcdc;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
 }
 
 .google-btn img {
-  width: 20px;
-  margin-right: 12px;
+  width: 22px;
+  margin-right: 15px;
 }
 
 .google-btn span {
   font-size: 16px;
   font-weight: 600;
-  color: #2d6a4f;
+  color: #444;
 }
 
 .google-btn:hover {
-  background-color: #2d6a4f;
-}
-
-.google-btn:hover span {
-  color: #ffffff;
+  background-color: #f0fdf4;
+  border-color: #2d6a4f;
 }
 
 .login-footer {
@@ -87,14 +80,13 @@
 }
 
 .login-footer p {
-  font-size: 12px;
-  color: #aaa;
-  margin-bottom: 4px;
+  font-size: 13px;
+  color: #999;
 }
 
 .login-footer small {
   color: #2d6a4f;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1.2px;
 }

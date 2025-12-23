@@ -1,11 +1,30 @@
 import React from 'react';
+import { createClient } from '@supabase/supabase-js';
 import './Login.css';
+
+// Accessing the Supabase credentials from your environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const Login = () => {
   
-  const handleGoogleLogin = () => {
-    console.log("Redirecting to Google Auth...");
-    // Trigger your existing Google Sign-In logic here
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          // This tells Supabase where to send the user after a successful Google login
+          redirectTo: window.location.origin,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error during Google login:", error.message);
+      alert("Authentication Error: " + error.message);
+    }
   };
 
   return (
@@ -24,13 +43,13 @@ const Login = () => {
         <button className="google-btn" onClick={handleGoogleLogin}>
           <img 
             src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
-            alt="Google Logo" 
+            alt="Google logo" 
           />
           <span>Continue with Google</span>
         </button>
 
         <footer className="login-footer">
-          <p>© 2024 HierarchicalRoots</p>
+          <p>© 2025 HierarchicalRoots</p>
           <small>Secure Gmail Authentication</small>
         </footer>
       </div>
