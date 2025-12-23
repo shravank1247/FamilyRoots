@@ -18,21 +18,20 @@ const initializeAuth = async () => {
     try {
         const { data: { session: initSession } } = await supabase.auth.getSession();
         if (initSession) {
-            // Use .select() without .single() to avoid the error
-            const { data: profileData } = await supabase
+            // NEVER use .single() here. Use .select() and check length.
+            const { data: profiles } = await supabase
                 .from('profiles')
                 .select('is_super_user')
                 .eq('id', initSession.user.id);
 
-            const isSuper = profileData && profileData.length > 0 ? profileData[0].is_super_user : false;
+            const isSuper = profiles && profiles.length > 0 ? profiles[0].is_super_user : false;
             setSession({ ...initSession, isSuperUser: isSuper });
-        } else {
-            setSession(null);
         }
     } catch (e) {
-        console.error(e);
+        console.error("Auth init failed", e);
     } finally {
-        setLoading(false); // ALWAYS runs, so you never get stuck
+        // This ensures the loading screen goes away no matter what
+        setLoading(false); 
     }
 };
 

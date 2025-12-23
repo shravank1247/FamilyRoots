@@ -108,7 +108,7 @@ useEffect(() => {
         // GUARD: If session is null (user not logged in), do nothing.
         // This prevents the 'reading properties of null' error.
         if (!session || !session.user) {
-            return; 
+            return <div className="loading-screen">Verifying Session...</div>;
         }
 
         try {
@@ -569,7 +569,7 @@ const stats = getStats();
                 </div>
             );
     }
-    
+
     return (
         <div className="tree-editor-wrapper">
         {/* 1. FIXED HEADER: Outside the main content flow */}
