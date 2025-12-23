@@ -105,25 +105,32 @@ const [userRole, setUserRole] = useState('viewonly'); // Default to safest
 
 useEffect(() => {
     const checkPermissions = async () => {
-        // 1. If Super User, grant 'full' immediately
-        if (session?.isSuperUser) {
+        // Add a guard clause: If there is no session yet, don't run the check
+        if (!session || !session.user) return;
+
+        // 1. Check Super User status (now using optional chaining)
+        if (session.isSuperUser) {
             setUserRole('full');
             return;
         }
 
-        // 2. Otherwise, check the tree_permissions table
-        const { data } = await supabase
-            .from('tree_permissions')
-            .select('role')
-            .eq('tree_id', familyId)
-            .eq('user_email', session.user.email)
-            .single();
+        // 2. Fetch from tree_permissions
+        try {
+            const { data, error } = await supabase
+                .from('tree_permissions')
+                .select('role')
+                .eq('tree_id', familyId)
+                .eq('user_email', session.user.email) // The error was happening here
+                .single();
 
-        if (data) setUserRole(data.role);
+            if (data) setUserRole(data.role);
+        } catch (err) {
+            console.error("Permission check failed", err);
+        }
     };
 
     checkPermissions();
-}, [familyId, session]);
+}, [familyId, session]); // Dependency on session ensures it runs once session is ready
 // Define capability flags
 const canMoveNodes = userRole === 'full';
 const canEditProperties = userRole === 'edit' || userRole === 'full';
@@ -546,6 +553,13 @@ const stats = getStats();
             </div>
 
             <div className="header-actions">
+                {/* Only 'full' users or Super Users can share the tree */}
+        {(userRole === 'full') && (
+            <button className="secondary-btn" onClick={() => setIsShareModalOpen(true)}>
+                🔗 Share Tree
+            </button>
+        )}
+
                 {/* VISIBLE TO EVERYONE: Search and Recenter */}
                 <div className="search-container">
                     <input 
@@ -592,6 +606,12 @@ const stats = getStats();
                 <button className="secondary-btn" onClick={handlePrintTree}>🖨️ Print PDF</button>
                 <a href="/dashboard" className="secondary-btn">← Back</a>
             </div>
+            {isShareModalOpen && (
+        <ShareTreeModal 
+            familyId={familyId} 
+            onClose={() => setIsShareModalOpen(false)} 
+        />
+    )}
         </header>
 
         {/* 2. FLEX WORKSPACE: Contains the Canvas and the Sidebar */}
