@@ -74,6 +74,7 @@ const TreeEditorRenderer = ({ session }) => {
             // Master Override for you
             if (session.isSuperUser || session.user.email === 'indarkumar47@gmail.com') {
                 setUserRole('full');
+                console.log("Full granted")
                 return;
             }
 
@@ -84,16 +85,19 @@ const TreeEditorRenderer = ({ session }) => {
                 .eq('family_id', familyId)
                 .eq('shared_with_email', session.user.email);
 
+                console.log("data output", data)
             if (data && data.length > 0) {
                 // Map 'view' to 'viewonly' if necessary for your logic
                 const dbRole = data[0].role;
                 setUserRole(dbRole === 'view' ? 'viewonly' : dbRole);
             } else {
                 setUserRole('viewonly');
+                console.log("nside else part")
             }
         } catch (err) {
             console.error("Permission check failed", err);
             setUserRole('viewonly');
+            console.log("inside catxch")
         }
     };
     checkPermissions();
