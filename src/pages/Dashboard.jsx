@@ -85,6 +85,19 @@ const Dashboard = () => {
     }
 };
 
+const Dashboard = ({ session }) => { 
+  
+  // Now you can safely use session.user
+  const userEmail = session?.user?.email || "Guest";
+
+  return (
+    <div>
+      <p>Logged in as: {userEmail}</p>
+      {/* ... rest of your code ... */}
+    </div>
+  );
+};
+
     const handleRenameTree = async (familyId, newName) => {
         const { error } = await renameFamilyTree(familyId, newName);
         if (error) {

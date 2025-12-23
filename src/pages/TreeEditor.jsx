@@ -99,7 +99,18 @@ const defaultColor = '#D3D3D3';
     pdf.save(`${treeName}-FamilyTree.pdf`);
 };
 
+const Dashboard = ({ session }) => { 
+  
+  // Now you can safely use session.user
+  const userEmail = session?.user?.email || "Guest";
 
+  return (
+    <div>
+      <p>Logged in as: {userEmail}</p>
+      {/* ... rest of your code ... */}
+    </div>
+  );
+};
 
 const [userRole, setUserRole] = useState('viewonly'); // Default to safest
 
