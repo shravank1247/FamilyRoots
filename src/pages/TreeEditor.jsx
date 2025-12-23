@@ -552,37 +552,57 @@ const canAddOrDelete = userRole === 'full';
 
 
     return (
-        <div className="tree-editor-wrapper">
-        {/* 1. FIXED HEADER: Outside the main content flow */}
-       <header className="canvas-header">
+    <div className="tree-editor-wrapper">
+        {/* 1. FIXED HEADER */}
+        <header className="canvas-header">
             <div className="toolbar-brand">
                 <span className="family-name-display">🌳 {treeName || "Loading Tree..."}</span>
             </div>
 
             <div className="header-actions">
-                {/* Only 'full' users or Super Users can share the tree */}
-            {(userRole === 'full' || session?.isSuperUser) && (
-        <>
-            <button className="secondary-btn" onClick={() => setIsShareModalOpen(true)}>
-                🔗 Share Tree
-            </button>
-            <button 
-                className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
-                onClick={toggleEditMode}
-            >
-                {isEditMode ? '🔓 Edit Mode: ON' : '🔒 View Mode: Locked'}
-            </button>
-            <button className="secondary-btn" onClick={handleSaveLayout}>
-                💾 Save Layout
-            </button>
-        </>
-    )}
+                {/* PRIMARY ACTIONS: Visible only to 'full' users or Super Users */}
+                {(userRole === 'full' || session?.isSuperUser) && (
+                    <>
+                        <button className="secondary-btn" onClick={() => setIsShareModalOpen(true)}>
+                            🔗 Share Tree
+                        </button>
+                        <button 
+                            className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
+                            onClick={toggleEditMode}
+                        >
+                            {isEditMode ? '🔓 Edit Mode: ON' : '🔒 View Mode: Locked'}
+                        </button>
+                        
+                        {/* Edit-Mode Specific Buttons */}
+                        {isEditMode && (
+                            <>
+                                <button className="secondary-btn" onClick={handleSaveLayout} disabled={saveStatus === 'Saving...'}>
+                                    {saveStatus || '💾 Save Layout'}
+                                </button>
+                                <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
+                                <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>
+                                    🗑️ Delete Node
+                                </button>
+                            </>
+                        )}
+                    </>
+                )}
 
-                {/* VISIBLE TO EVERYONE: Search and Recenter */}
+                {/* SECONDARY ACTIONS: Visible to 'edit' users who aren't 'full' */}
+                {userRole === 'edit' && (
+                    <button 
+                        className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
+                        onClick={toggleEditMode}
+                    >
+                        {isEditMode ? '🔓 Edit Properties: ON' : '🔒 View Mode: Locked'}
+                    </button>
+                )}
+
+                {/* UNIVERSAL ACTIONS: Visible to everyone */}
                 <div className="search-container">
                     <input 
                         type="text" 
-                        placeholder="🔍 Search name, year, gender, or tag..." 
+                        placeholder="🔍 Search name, year, or tag..." 
                         value={filterText}
                         onChange={(e) => setFilterText(e.target.value)}
                         className="search-input"
@@ -594,45 +614,20 @@ const canAddOrDelete = userRole === 'full';
                     🎯 <span className="hide-on-mobile">Recenter</span>
                 </button>
 
-                {/* ROLE BASED: Toggle only visible to 'edit' or 'full' permissions */}
-                {(userRole === 'edit' || userRole === 'full') && (
-                    <button 
-                        className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
-                        onClick={toggleEditMode}
-                    >
-                        {isEditMode ? '🔓 Edit Mode: ON' : '🔒 View Mode: Locked'}
-                    </button>
-                )}
-
-                {/* ROLE BASED: Save/Add/Delete only visible if Edit Mode is ON and permission is 'full' */}
-                {isEditMode && userRole === 'full' && (
-                    <>
-                        <button className="secondary-btn" onClick={handleSaveLayout} disabled={saveStatus === 'Saving...'}>
-                            {saveStatus || '💾 Save Layout'}
-                        </button>
-                        <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
-                        <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
-                    </>
-                )}
-
-                {/* ROLE BASED: If user is only 'edit', they can see the save button for properties, but not layout/delete */}
-                {isEditMode && userRole === 'edit' && (
-                    <span className="edit-notice">Editing Properties Only</span>
-                )}
-                
-                {/* VISIBLE TO EVERYONE: Print and Navigation */}
                 <button className="secondary-btn" onClick={handlePrintTree}>🖨️ Print PDF</button>
-                <a href="/dashboard" className="secondary-btn">← Back</a>
+                <button className="secondary-btn" onClick={() => navigate('/dashboard')}>← Back</button>
             </div>
+
+            {/* SHARE MODAL OVERLAY */}
             {isShareModalOpen && (
-        <ShareTreeModal 
-            familyId={familyId} 
-            onClose={() => setIsShareModalOpen(false)} 
-        />
-    )}
+                <ShareTreeModal 
+                    familyId={familyId} 
+                    onClose={() => setIsShareModalOpen(false)} 
+                />
+            )}
         </header>
 
-        {/* 2. FLEX WORKSPACE: Contains the Canvas and the Sidebar */}
+        {/* 2. FLEX WORKSPACE */}
         <div className="editor-workspace">
             <main className="main-content-canvas">
                 <div className="react-flow-container">
@@ -641,36 +636,28 @@ const canAddOrDelete = userRole === 'full';
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
-                        // Only allow editing properties if role is 'edit' or 'full'
                         onNodeClick={canEditProperties ? onNodeClick : undefined}
                         onConnect={onConnect}
                         onPaneClick={onPaneClick}
                         onNodeDragStop={onNodeDragStop}
                         nodeTypes={nodeTypes}
                         edgeTypes={edgeTypes} 
-                        // Disable dragging if the user is only in 'edit' mode (they can change props but not move)
                         nodesDraggable={canMoveNodes} 
                         nodesConnectable={canAddOrDelete}
                         elementsSelectable={canEditProperties}
-                        // UI Feedback
-                        paneMoveable={true}
-                        panOnDrag={true}
                         fitView
                         fitViewOptions={{ padding: 0.2 }}
-                        minZoom={0.2}
-                        maxZoom={1.5}
-                        preventScrolling={false}
                     >
                         <Controls showInteractive={false}/>
                         <Background color="#aaa" gap={8} />
                     </ReactFlow>
 
+                    {/* STATS PANEL */}
                     <div className="canvas-stats-panel">
                         <div className="stats-item total">
-                            <span className="stats-label">Total Nodes</span>
+                            <span className="stats-label">Nodes</span>
                             <span className="stats-value">{stats.total}</span>
                         </div>
-                        <div className="stats-divider" />
                         <div className="stats-item">
                             <span className="stats-icon">♂️</span>
                             <span className="stats-value">{stats.males}</span>
@@ -679,24 +666,21 @@ const canAddOrDelete = userRole === 'full';
                             <span className="stats-icon">♀️</span>
                             <span className="stats-value">{stats.females}</span>
                         </div>
-                        <div className="stats-item">
-                            <span className="stats-icon">⚰️</span>
-                            <span className="stats-value">{stats.deceased}</span>
-                        </div>
                     </div>
                 </div>
             </main>
 
-            {/* 3. SIDEBAR: Opens from the right without affecting the Header */}
+            {/* 3. SIDEBAR */}
             <PropertiesSidebar 
                 person={selectedNodeData} 
                 familyId={familyId} 
                 onSave={handleSidebarSave} 
                 onClose={() => setSelectedNodeData(null)}
+                readOnly={!isEditMode || !canEditProperties}
             />
         </div>
     </div>
-    );
+);
 };
 
 const TreeEditor = ({ session }) => (
