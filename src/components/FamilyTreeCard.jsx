@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-    const FamilyTreeCard = ({ family, onView, onDelete, onRename, onShare }) => {
+const FamilyTreeCard = ({ family, onView, onDelete, onRename, onShare }) => {
     const [isRenaming, setIsRenaming] = useState(false);
     const [newName, setNewName] = useState(family.name);
 
@@ -17,18 +17,8 @@ import React, { useState } from 'react';
         setIsRenaming(false);
     };
 
-    const handleShareClick = (e) => {
-        e.stopPropagation(); // Stop card click from opening the tree
-        const email = prompt("Enter user email to share this tree with:");
-        if (email && email.includes('@')) {
-            onShare(family.id, email);
-        } else if (email) {
-            alert("Please enter a valid email.");
-        }
-    };
-
     return (
-        <div className="tree-card" style={{ borderLeft: '5px solid var(--primary-color)', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', background: '#fff' }}>
+        <div className="tree-card" style={{ borderLeft: '5px solid #2d6a4f', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', background: '#fff' }}>
             <div className="card-header" style={{ marginBottom: '15px' }}>
                 {isRenaming ? (
                     <div style={{ display: 'flex', gap: '10px' }}>
@@ -57,20 +47,26 @@ import React, { useState } from 'react';
                     <button 
                         className="primary-btn" 
                         onClick={() => onView(family.id)}
-                        style={{ backgroundColor: '#4CAF50', color: 'white', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', border: 'none' }}
+                        style={{ backgroundColor: '#2d6a4f', color: 'white', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', border: 'none' }}
                     >
                         👁️ View
                     </button>
                     <button 
                         className="secondary-btn"
                         onClick={() => setIsRenaming(true)}
-                        style={{ padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', border: '1px solid #ccc' }}
+                        style={{ padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', border: '1px solid #ccc', background: '#fff' }}
                     >
                         ✏️ Rename
                     </button>
-                    <button onClick={handleShareClick} className="share-btn" style={{ backgroundColor: '#9b59b6', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}>
-                    🔗 Share
-                </button>
+                    
+                    {/* FIXED: Removed the prompt logic. Now calls onShare from Dashboard */}
+                    <button 
+                        onClick={onShare} 
+                        className="share-btn" 
+                        style={{ backgroundColor: '#9b59b6', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}
+                    >
+                        🔗 Share
+                    </button>
                 </div>
                 
                 <button 

@@ -124,76 +124,81 @@ const Dashboard = ({ session }) => {
     );
 
     return (
-        <div id="app-wrapper">
-            <aside id="sidebar">
-                <div className="sidebar-header">
-                    <h1 className="app-title">FamilyRoots</h1>
-                    <p className="user-info">{user?.email || "Guest"}</p>
-                </div>
-                <nav className="main-nav">
-                    <button onClick={() => navigate('/dashboard')} className="nav-link active">🏠 My Family Trees</button>
-                    <button onClick={() => setShowModal(true)} className="nav-link">➕ Start New Tree</button>
-                    <button onClick={() => navigate('/profile')} className="nav-link">👤 Edit Profile</button>
-                </nav>
-                <div className="sidebar-footer">
-                    <button onClick={signOut} className="secondary-btn">Sign Out</button>
-                </div>
-            </aside>
+    <div id="app-wrapper">
+        <aside id="sidebar">
+            <div className="sidebar-header">
+                <h1 className="app-title">FamilyRoots</h1>
+                <p className="user-info">{user?.email || "Guest"}</p>
+            </div>
+            <nav className="main-nav">
+                <button onClick={() => navigate('/dashboard')} className="nav-link active">🏠 My Family Trees</button>
+                <button onClick={() => setShowModal(true)} className="nav-link">➕ Start New Tree</button>
+                <button onClick={() => navigate('/profile')} className="nav-link">👤 Edit Profile</button>
+            </nav>
+            <div className="sidebar-footer">
+                <button onClick={signOut} className="secondary-btn">Sign Out</button>
+            </div>
+        </aside>
 
-            <main id="main-content">
-                <header className="main-header">
-                    <h2>My Family Trees</h2>
-                    <button onClick={() => setShowModal(true)} className="primary-btn">Create New Tree</button>
-                </header>
-                
-                <div className="tree-grid">
-                    {sortedFamilies.length > 0 ? (
-                        sortedFamilies.map(family => (
-                            <FamilyTreeCard 
-                                key={family.id} 
-                                family={family} 
-                                onView={handleViewTree}
-                                onDelete={handleDeleteTree}
-                                onRename={handleRenameTree}
-                                {selectedTreeForShare && (
-    <ShareTreeModal 
-        familyId={selectedTreeForShare} 
-        onClose={() => setSelectedTreeForShare(null)} 
-    />
-)}
-                            />
-                        ))
-                    ) : (
-                        <div className="empty-state">
-                            <h3>No Family Trees Found</h3>
-                            <button onClick={() => setShowModal(true)} className="primary-btn">Create Tree</button>
-                        </div>
-                    )}
-                </div>
-                {message && <p className="status-message">{message}</p>}
-            </main>
-
-            <Modal show={showModal} onClose={() => setShowModal(false)} title="Start a New Family Tree">
-                <form onSubmit={handleCreateTree} className="form-content">
-                    <div className="form-group">
-                        <label htmlFor="tree-name">Family Tree Name</label>
-                        <input 
-                            type="text" 
-                            id="tree-name" 
-                            required 
-                            value={treeName} 
-                            onChange={(e) => setTreeName(e.target.value)}
-                            placeholder="e.g., The Smith Family History"
+        <main id="main-content">
+            <header className="main-header">
+                <h2>My Family Trees</h2>
+                <button onClick={() => setShowModal(true)} className="primary-btn">Create New Tree</button>
+            </header>
+            
+            <div className="tree-grid">
+                {sortedFamilies.length > 0 ? (
+                    sortedFamilies.map(family => (
+                        <FamilyTreeCard 
+                            key={family.id} 
+                            family={family} 
+                            onView={handleViewTree}
+                            onDelete={handleDeleteTree}
+                            onRename={handleRenameTree}
+                            // Trigger modal by setting the ID
+                            onShare={() => setSelectedTreeForShare(family.id)} 
                         />
+                    ))
+                ) : (
+                    <div className="empty-state">
+                        <h3>No Family Trees Found</h3>
+                        <button onClick={() => setShowModal(true)} className="primary-btn">Create Tree</button>
                     </div>
-                    <div className="form-actions">
-                        <button type="button" onClick={() => setShowModal(false)} className="secondary-btn">Cancel</button>
-                        <button type="submit" className="primary-btn">Create Tree</button>
-                    </div>
-                </form>
-            </Modal>
-        </div>
-    );
+                )}
+            </div>
+
+            {/* FIXED: Move Share Modal here as a sibling to the grid */}
+            {selectedTreeForShare && (
+                <ShareTreeModal 
+                    familyId={selectedTreeForShare} 
+                    onClose={() => setSelectedTreeForShare(null)} 
+                />
+            )}
+
+            {message && <p className="status-message">{message}</p>}
+        </main>
+
+        <Modal show={showModal} onClose={() => setShowModal(false)} title="Start a New Family Tree">
+            <form onSubmit={handleCreateTree} className="form-content">
+                <div className="form-group">
+                    <label htmlFor="tree-name">Family Tree Name</label>
+                    <input 
+                        type="text" 
+                        id="tree-name" 
+                        required 
+                        value={treeName} 
+                        onChange={(e) => setTreeName(e.target.value)}
+                        placeholder="e.g., The Smith Family History"
+                    />
+                </div>
+                <div className="form-actions">
+                    <button type="button" onClick={() => setShowModal(false)} className="secondary-btn">Cancel</button>
+                    <button type="submit" className="primary-btn">Create Tree</button>
+                </div>
+            </form>
+        </Modal>
+    </div>
+);
 };
 
 export default Dashboard;
