@@ -69,66 +69,31 @@ const TreeEditorRenderer = ({ session }) => {
 
     const [userRole, setUserRole] = useState('viewonly'); // Default to safest
 
-useEffect(() => {
-    const checkPermissions = async () => {
-        // GUARD: If session is null (user not logged in), do nothing.
-        // This prevents the 'reading properties of null' error.
-        if (!session || !session.user) {
-            return <div className="loading-screen">Verifying Session...</div>;
-        }
+    useEffect(() => {
+            const checkPermissions = async () => {
+                if (!session?.user) return;
 
-        try {
-            // 1. Check Super User status first
-            if (session.isSuperUser) {
-                setUserRole('full');
-                return;
-            }
+                try {
+                    if (session.isSuperUser) {
+                        setUserRole('full');
+                        return;
+                    }
 
-            // 2. Check specific tree permissions
-            const { data, error } = await supabase
-                .from('tree_permissions')
-                .select('role')
-                .eq('tree_id', familyId)
-                .eq('user_email', session.user.email)
-                .single();
+                    const { data, error } = await supabase
+                        .from('tree_permissions')
+                        .select('role')
+                        .eq('tree_id', familyId)
+                        .eq('user_email', session.user.email)
+                        .single();
 
-            if (data) {
-                setUserRole(data.role);
-            } else {
-                setUserRole('viewonly'); // Default if no record found
-            }
-        } catch (err) {
-            console.log("Not shared with this user, defaulting to viewonly");
-            setUserRole('viewonly');
-        }
-    };
-
-    checkPermissions();
-}, [familyId, session]); // Runs again once session is loaded
-
-
-if (!session || !session.user) {
-            return (
-                <div className="loading-screen" style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: '100vh',
-                    background: '#f8fbf9',
-                    color: '#2d6a4f',
-                    fontWeight: 'bold'
-                }}>
-                    Checking Permissions...
-                </div>
-            );
-    }
-
-    
-// Define capability flags
-const canMoveNodes = userRole === 'full';
-const canEditProperties = userRole === 'edit' || userRole === 'full';
-const canAddOrDelete = userRole === 'full';
-
+                    if (data) setUserRole(data.role);
+                    else setUserRole('viewonly');
+                } catch (err) {
+                    setUserRole('viewonly');
+                }
+            };
+            checkPermissions();
+        }, [familyId, session]);
 
 
     // --- GENERATION COLOR CONFIG ---
@@ -575,7 +540,14 @@ const stats = getStats();
     setTimeout(() => setSaveStatus(null), 2000);
 }, [setNodes, setSelectedNodeData]);
 
-    
+    // Define capability flags
+const canMoveNodes = userRole === 'full';
+const canEditProperties = userRole === 'edit' || userRole === 'full';
+const canAddOrDelete = userRole === 'full';
+
+if (!session || !session.user) {
+        return <div className="loading-screen">Checking Permissions...</div>;
+    }
 
     return (
         <div className="tree-editor-wrapper">
