@@ -18,6 +18,7 @@ const Dashboard = ({ session }) => {
     const [selectedTreeForShare, setSelectedTreeForShare] = useState(null); // State for Share Modal
     const [treeName, setTreeName] = useState('');
     const [message, setMessage] = useState('');
+    const userEmail = session?.user?.email || "Guest";
 
     const navigate = useNavigate();
 
@@ -38,42 +39,58 @@ const Dashboard = ({ session }) => {
     if (isLoading) return <div className="loading">Loading...</div>;
 
     return (
-        <div id="app-wrapper">
-            <aside id="sidebar">
-                {/* Sidebar Content */}
-                <button onClick={signOut}>Sign Out</button>
-            </aside>
+    <div id="app-wrapper">
+        <aside id="sidebar">
+            {/* ADD THIS: Sidebar Header with Logo and User Info */}
+            <div className="sidebar-header">
+                <h1 className="app-title">FamilyRoots</h1>
+                <p className="user-info">{session?.user?.email || "Guest"}</p>
+            </div>
 
-            <main id="main-content">
-                <div className="tree-grid">
-                    {families.map(family => (
-                        <FamilyTreeCard 
-                            key={family.id} 
-                            family={family} 
-                            onView={(id) => navigate(`/tree-editor/${id}`)}
-                            onDelete={deleteFamilyTree}
-                            onRename={renameFamilyTree}
-                            // FIXED: Passing a function that updates the state above
-                            onShare={() => setSelectedTreeForShare(family.id)} 
-                        />
-                    ))}
-                </div>
+            {/* ADD THIS: Main Navigation Links */}
+            <nav className="main-nav">
+                <button onClick={() => navigate('/dashboard')} className="nav-link active">🏠 My Family Trees</button>
+                <button onClick={() => setShowModal(true)} className="nav-link">➕ Start New Tree</button>
+                <button onClick={() => navigate('/profile')} className="nav-link">👤 Edit Profile</button>
+            </nav>
 
-                {/* FIXED: Modal sits as a sibling to the grid, NOT inside the map loop */}
-                {selectedTreeForShare && (
-                    <ShareTreeModal 
-                        familyId={selectedTreeForShare} 
-                        onClose={() => setSelectedTreeForShare(null)} 
+            <div className="sidebar-footer">
+                <button onClick={signOut} className="secondary-btn">Sign Out</button>
+            </div>
+        </aside>
+
+        <main id="main-content">
+            <header className="main-header">
+                <h2>My Family Trees</h2>
+                <button onClick={() => setShowModal(true)} className="primary-btn">Create New Tree</button>
+            </header>
+
+            <div className="tree-grid">
+                {families.map(family => (
+                    <FamilyTreeCard 
+                        key={family.id} 
+                        family={family} 
+                        onView={(id) => navigate(`/tree-editor/${id}`)}
+                        onDelete={deleteFamilyTree}
+                        onRename={renameFamilyTree}
+                        onShare={() => setSelectedTreeForShare(family.id)} 
                     />
-                )}
-            </main>
+                ))}
+            </div>
 
-            {/* Create Tree Modal */}
-            <Modal show={showModal} onClose={() => setShowModal(false)}>
-                {/* Form content */}
-            </Modal>
-        </div>
-    );
+            {selectedTreeForShare && (
+                <ShareTreeModal 
+                    familyId={selectedTreeForShare} 
+                    onClose={() => setSelectedTreeForShare(null)} 
+                />
+            )}
+        </main>
+
+        <Modal show={showModal} onClose={() => setShowModal(false)} title="Start a New Family Tree">
+            {/* Ensure your form content logic is here */}
+        </Modal>
+    </div>
+);
 };
 
 export default Dashboard;
