@@ -75,3 +75,5 @@ const ShareTreeModal = ({ familyId, onClose }) => {
         </div>
     );
 };
+
+export default ShareTreeModal;
