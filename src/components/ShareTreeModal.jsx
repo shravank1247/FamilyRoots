@@ -18,21 +18,29 @@ const ShareTreeModal = ({ familyId, onClose }) => {
     useEffect(() => { fetchCollaborators(); }, [fetchCollaborators]);
 
     const handleShare = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        // Save to family_shares table
-        const { error } = await supabase.from('family_shares').upsert({ 
+    e.preventDefault();
+    setLoading(true);
+
+    const { error } = await supabase
+        .from('family_shares') 
+        .upsert({ 
             family_id: familyId, 
             shared_with_email: email.toLowerCase().trim(), 
             role: permission 
-        }, { onConflict: 'family_id, shared_with_email' });
+        }, { 
+            // This must match the columns in your UNIQUE constraint above
+            onConflict: 'family_id, shared_with_email' 
+        });
 
-        if (!error) {
-            setEmail('');
-            fetchCollaborators();
-        }
-        setLoading(false);
-    };
+    if (error) {
+        console.error("Share error:", error.message);
+        alert("Error sharing tree: " + error.message);
+    } else {
+        setEmail('');
+        fetchCollaborators();
+    }
+    setLoading(false);
+};
 
     const removeAccess = async (userEmail) => {
         const { error } = await supabase
