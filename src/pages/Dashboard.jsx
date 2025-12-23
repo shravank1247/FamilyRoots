@@ -18,8 +18,29 @@ const Dashboard = ({ session }) => {
     const [selectedTreeForShare, setSelectedTreeForShare] = useState(null);
     const [treeName, setTreeName] = useState('');
     const [message, setMessage] = useState('');
+    const [deletingId, setDeletingId] = useState(null);
     
     const navigate = useNavigate();
+
+    const handleDeleteClick = (id) => {
+    setDeletingId(id); // Open the warning modal
+};
+const processDelete = async () => {
+    if (!deletingId) return;
+    
+    setMessage('Deleting tree...');
+    const { error } = await deleteFamilyTree(deletingId); // Using your API service
+
+    if (error) {
+        setMessage(`Error: ${error.message}`);
+    } else {
+        setFamilies(families.filter(f => f.id !== deletingId));
+        setMessage('Tree deleted successfully.');
+        setDeletingId(null);
+        // Clear message after 3 seconds
+        setTimeout(() => setMessage(''), 3000);
+    }
+};
 
     useEffect(() => {
         if (session?.user) {
@@ -147,6 +168,19 @@ const Dashboard = ({ session }) => {
                 {message && <p className="status-message">{message}</p>}
             </main>
 
+<Modal 
+            show={!!deletingId} 
+            onClose={() => setDeletingId(null)} 
+            title="Confirm Deletion"
+        >
+            <div className="warning-content">
+                <p>Are you sure you want to delete this family tree? This action <strong>cannot be undone</strong> and all member data will be lost.</p>
+                <div className="modal-actions">
+                    <button className="secondary-btn" onClick={() => setDeletingId(null)}>Cancel</button>
+                    <button className="delete-btn" onClick={processDelete}>Delete Forever</button>
+                </div>
+            </div>
+        </Modal>
             {/* --- FIX: Added form content as children of the Modal --- */}
             <Modal 
                 show={showModal} 
