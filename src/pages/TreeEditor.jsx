@@ -561,17 +561,22 @@ const canAddOrDelete = userRole === 'full';
 
             <div className="header-actions">
                 {/* Only 'full' users or Super Users can share the tree */}
-            {(userRole === 'full') && (
-                <>
-                    <button className="secondary-btn" onClick={() => setIsShareModalOpen(true)}>🔗 Share Tree</button>
-                    <button 
-                        className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
-                        onClick={() => setIsEditMode(!isEditMode)}
-                    >
-                        {isEditMode ? '🔓 Edit Mode: ON' : '🔒 View Mode: Locked'}
-                    </button>
-                </>
-            )}
+            {(userRole === 'full' || session?.isSuperUser) && (
+        <>
+            <button className="secondary-btn" onClick={() => setIsShareModalOpen(true)}>
+                🔗 Share Tree
+            </button>
+            <button 
+                className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
+                onClick={toggleEditMode}
+            >
+                {isEditMode ? '🔓 Edit Mode: ON' : '🔒 View Mode: Locked'}
+            </button>
+            <button className="secondary-btn" onClick={handleSaveLayout}>
+                💾 Save Layout
+            </button>
+        </>
+    )}
 
                 {/* VISIBLE TO EVERYONE: Search and Recenter */}
                 <div className="search-container">
