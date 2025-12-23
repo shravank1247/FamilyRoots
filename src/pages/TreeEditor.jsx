@@ -99,10 +99,10 @@ const TreeEditorRenderer = ({ session }) => {
         checkPermissions();
     }, [familyId, session]);
 
-// 3. THE "SAFETY GATE" (Only return JSX here, after all hooks)
-if (!session || !session.user) {
-    return <div className="loading-screen">Checking Permissions...</div>; //
-}
+// // 3. THE "SAFETY GATE" (Only return JSX here, after all hooks)
+// if (!session || !session.user) {
+//     return <div className="loading-screen">Checking Permissions...</div>; //
+// }
 
         
 
