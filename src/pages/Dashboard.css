@@ -30,6 +30,10 @@
 @media (max-width: 900px) {
     #app-wrapper {
         flex-direction: column; /* Stack sidebar on top of main content */
+        display: flex;
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
     }
 
     #sidebar {
@@ -59,7 +63,13 @@
 
 @media (max-width: 600px) {
     #main-content {
-        padding: 15px;
+        flex: 1;
+    height: 100%; 
+    overflow-y: auto; /* This creates the scrollbar here */
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
     }
 
     .main-header {
