@@ -484,96 +484,99 @@ const stats = getStats();
 
     return (
         <div className="tree-editor-wrapper">
-            <main className="main-content-canvas">
-                <header className="canvas-header">
-                    <h2>{treeName}</h2>
-                    <div className="header-actions">
-                        <div className="search-container">
-                            <input 
-                                type="text" 
-                                placeholder="🔍 Search name, year, gender, or tag..." 
-                                value={filterText}
-                                onChange={(e) => setFilterText(e.target.value)}
-                                className="search-input"
-                            />
-                            {filterText && <button onClick={() => setFilterText('')} className="clear-search">✕</button>}
-                        </div>
-                        <button className="secondary-btn mobile-icon-btn" onClick={handleRecenter} title="Recenter Tree">
-                            🎯 <span className="hide-on-mobile">Recenter</span>
-                        </button>
-                    <button 
-                        className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
-                        onClick={toggleEditMode}
-                        >
-                        {isEditMode ? '🔓 Edit Mode: ON' : '🔒 View Mode: Locked'}
-                    </button>
-        {isEditMode && (
-            <>
-                <button className="secondary-btn" onClick={handleSaveLayout} disabled={saveStatus === 'Saving...'}>
-                            {saveStatus || '💾 Save Layout'}
+        {/* 1. FIXED HEADER: Outside the main content flow */}
+        <header className="canvas-header">
+            <h2>{treeName}</h2>
+            <div className="header-actions">
+                <div className="search-container">
+                    <input 
+                        type="text" 
+                        placeholder="🔍 Search name, year, gender, or tag..." 
+                        value={filterText}
+                        onChange={(e) => setFilterText(e.target.value)}
+                        className="search-input"
+                    />
+                    {filterText && <button onClick={() => setFilterText('')} className="clear-search">✕</button>}
+                </div>
+                
+                <button className="secondary-btn mobile-icon-btn" onClick={handleRecenter} title="Recenter Tree">
+                    🎯 <span className="hide-on-mobile">Recenter</span>
                 </button>
-                <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
-                <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
-            </>
-        )}
-        
-        <button className="secondary-btn" onClick={handlePrintTree}>🖨️ Print PDF</button>
-        <a href="/dashboard" className="secondary-btn">← Back</a>
-        
-                        
-                    </div>
-                </header>
+
+                <button 
+                    className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
+                    onClick={toggleEditMode}
+                >
+                    {isEditMode ? '🔓 Edit Mode: ON' : '🔒 View Mode: Locked'}
+                </button>
+
+                {isEditMode && (
+                    <>
+                        <button className="secondary-btn" onClick={handleSaveLayout} disabled={saveStatus === 'Saving...'}>
+                            {saveStatus || '💾 Save Layout'}
+                        </button>
+                        <QuickAddButton selectedPerson={selectedFullNode?.data || null} onAddNode={onAddNode} />
+                        <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
+                    </>
+                )}
+                
+                <button className="secondary-btn" onClick={handlePrintTree}>🖨️ Print PDF</button>
+                <a href="/dashboard" className="secondary-btn">← Back</a>
+            </div>
+        </header>
+
+        {/* 2. FLEX WORKSPACE: Contains the Canvas and the Sidebar */}
+        <div className="editor-workspace">
+            <main className="main-content-canvas">
                 <div className="react-flow-container">
                     <ReactFlow
                         nodes={nodes}
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
-                        onNodeClick={isEditMode ? onNodeClick : undefined} // Disable sidebar trigger in view mode
+                        onNodeClick={isEditMode ? onNodeClick : undefined}
                         onConnect={onConnect}
                         onPaneClick={onPaneClick}
                         onNodeDragStop={onNodeDragStop}
                         nodeTypes={nodeTypes}
                         edgeTypes={edgeTypes} 
-                        // --- CONTROL INTERACTIVITY HERE ---
                         nodesDraggable={isEditMode}
                         nodesConnectable={isEditMode}
                         elementsSelectable={isEditMode}
-                        panOnDrag={true} // Always allow moving across the canvas
+                        panOnDrag={true}
                         fitView
-                        fitViewOptions={{ padding: 0.2 }} // Adds 20% margin so nodes don't touch edges
+                        fitViewOptions={{ padding: 0.2 }}
                         minZoom={0.2}
                         maxZoom={1.5}
-                        // Enable touch gestures for mobile
                         preventScrolling={false}
                     >
-                        <Controls showInteractive={false}/> {/* Simplify controls for mobile */}
+                        <Controls showInteractive={false}/>
                         <Background color="#aaa" gap={8} />
-                        
                     </ReactFlow>
 
-
                     <div className="canvas-stats-panel">
-    <div className="stats-item total">
-        <span className="stats-label">Total Nodes</span>
-        <span className="stats-value">{stats.total}</span>
-    </div>
-    <div className="stats-divider" />
-    <div className="stats-item">
-        <span className="stats-icon">♂️</span>
-        <span className="stats-value">{stats.males}</span>
-    </div>
-    <div className="stats-item">
-        <span className="stats-icon">♀️</span>
-        <span className="stats-value">{stats.females}</span>
-    </div>
-    <div className="stats-item">
-        <span className="stats-icon">⚰️</span>
-        <span className="stats-value">{stats.deceased}</span>
-    </div>
-</div>
+                        <div className="stats-item total">
+                            <span className="stats-label">Total Nodes</span>
+                            <span className="stats-value">{stats.total}</span>
+                        </div>
+                        <div className="stats-divider" />
+                        <div className="stats-item">
+                            <span className="stats-icon">♂️</span>
+                            <span className="stats-value">{stats.males}</span>
+                        </div>
+                        <div className="stats-item">
+                            <span className="stats-icon">♀️</span>
+                            <span className="stats-value">{stats.females}</span>
+                        </div>
+                        <div className="stats-item">
+                            <span className="stats-icon">⚰️</span>
+                            <span className="stats-value">{stats.deceased}</span>
+                        </div>
+                    </div>
                 </div>
             </main>
+
+            {/* 3. SIDEBAR: Opens from the right without affecting the Header */}
             <PropertiesSidebar 
                 person={selectedNodeData} 
                 familyId={familyId} 
@@ -581,6 +584,7 @@ const stats = getStats();
                 onClose={() => setSelectedNodeData(null)}
             />
         </div>
+    </div>
     );
 };
 

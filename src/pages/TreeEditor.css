@@ -403,3 +403,50 @@
         gap: 10px;
     }
 }
+
+/* Container for the whole screen */
+.tree-editor-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+/* Fixes the header height and prevents it from moving */
+.canvas-header {
+    height: 70px; /* Adjust height as needed */
+    flex-shrink: 0; /* Important: prevents header from squishing */
+    background: white;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 2px solid #d8f3dc;
+}
+
+/* New wrapper for the area below the header */
+.editor-workspace {
+    display: flex;
+    flex: 1; /* Takes up remaining space */
+    overflow: hidden;
+    position: relative;
+}
+
+/* The main canvas area inside the workspace */
+.main-content-canvas {
+    flex: 1;
+    position: relative;
+    height: 100%;
+}
+
+/* Ensure the sidebar slides in from the side correctly */
+.properties-sidebar {
+    width: 350px;
+    height: 100%;
+    background: #f8fbf9;
+    border-left: 1px solid #ced4da;
+    flex-shrink: 0; /* Prevents sidebar from shrinking the canvas too much */
+    transition: transform 0.3s ease;
+}
