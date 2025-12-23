@@ -36,6 +36,15 @@ function App() {
       setLoading(false);
     });
 
+    // Inside your useEffect in App.jsx
+    const { data: profile } = supabase
+      .from('profiles')
+      .select('is_super_user')
+      .eq('id', session.user.id)
+      .single();
+
+    setSession({ ...session, isSuperUser: profile?.is_super_user || false });
+
     return () => subscription.unsubscribe();
   }, []);
 

@@ -100,6 +100,35 @@ const defaultColor = '#D3D3D3';
 };
 
 
+
+const [userRole, setUserRole] = useState('viewonly'); // Default to safest
+
+useEffect(() => {
+    const checkPermissions = async () => {
+        // 1. If Super User, grant 'full' immediately
+        if (session?.isSuperUser) {
+            setUserRole('full');
+            return;
+        }
+
+        // 2. Otherwise, check the tree_permissions table
+        const { data } = await supabase
+            .from('tree_permissions')
+            .select('role')
+            .eq('tree_id', familyId)
+            .eq('user_email', session.user.email)
+            .single();
+
+        if (data) setUserRole(data.role);
+    };
+
+    checkPermissions();
+}, [familyId, session]);
+// Define capability flags
+const canMoveNodes = userRole === 'full';
+const canEditProperties = userRole === 'edit' || userRole === 'full';
+const canAddOrDelete = userRole === 'full';
+
 //to filter on canvas
 const [filterText, setFilterText] = useState('');
 
@@ -345,7 +374,7 @@ const toggleEditMode = () => {
             fetchTreeDetails();
         }
     }, [familyId]);
-    
+
     // --- NEW INTELLIGENT DRAG HANDLER ---
     const onNodeDragStop = useCallback((event, node) => {
         if (!reactFlowInstance) return;
@@ -511,11 +540,13 @@ const stats = getStats();
     return (
         <div className="tree-editor-wrapper">
         {/* 1. FIXED HEADER: Outside the main content flow */}
-        <header className="canvas-header">
-            <h2><div className="toolbar-brand">
+       <header className="canvas-header">
+            <div className="toolbar-brand">
                 <span className="family-name-display">🌳 {treeName || "Loading Tree..."}</span>
-            </div></h2>
+            </div>
+
             <div className="header-actions">
+                {/* VISIBLE TO EVERYONE: Search and Recenter */}
                 <div className="search-container">
                     <input 
                         type="text" 
@@ -531,14 +562,18 @@ const stats = getStats();
                     🎯 <span className="hide-on-mobile">Recenter</span>
                 </button>
 
-                <button 
-                    className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
-                    onClick={toggleEditMode}
-                >
-                    {isEditMode ? '🔓 Edit Mode: ON' : '🔒 View Mode: Locked'}
-                </button>
+                {/* ROLE BASED: Toggle only visible to 'edit' or 'full' permissions */}
+                {(userRole === 'edit' || userRole === 'full') && (
+                    <button 
+                        className={`secondary-btn ${isEditMode ? 'edit-active' : 'view-active'}`} 
+                        onClick={toggleEditMode}
+                    >
+                        {isEditMode ? '🔓 Edit Mode: ON' : '🔒 View Mode: Locked'}
+                    </button>
+                )}
 
-                {isEditMode && (
+                {/* ROLE BASED: Save/Add/Delete only visible if Edit Mode is ON and permission is 'full' */}
+                {isEditMode && userRole === 'full' && (
                     <>
                         <button className="secondary-btn" onClick={handleSaveLayout} disabled={saveStatus === 'Saving...'}>
                             {saveStatus || '💾 Save Layout'}
@@ -547,7 +582,13 @@ const stats = getStats();
                         <button className="secondary-btn" onClick={handleDeleteSelected} disabled={!selectedFullNode}>🗑️ Delete Node</button>
                     </>
                 )}
+
+                {/* ROLE BASED: If user is only 'edit', they can see the save button for properties, but not layout/delete */}
+                {isEditMode && userRole === 'edit' && (
+                    <span className="edit-notice">Editing Properties Only</span>
+                )}
                 
+                {/* VISIBLE TO EVERYONE: Print and Navigation */}
                 <button className="secondary-btn" onClick={handlePrintTree}>🖨️ Print PDF</button>
                 <a href="/dashboard" className="secondary-btn">← Back</a>
             </div>
@@ -562,15 +603,19 @@ const stats = getStats();
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
-                        onNodeClick={isEditMode ? onNodeClick : undefined}
+                        // Only allow editing properties if role is 'edit' or 'full'
+                        onNodeClick={canEditProperties ? onNodeClick : undefined}
                         onConnect={onConnect}
                         onPaneClick={onPaneClick}
                         onNodeDragStop={onNodeDragStop}
                         nodeTypes={nodeTypes}
                         edgeTypes={edgeTypes} 
-                        nodesDraggable={isEditMode}
-                        nodesConnectable={isEditMode}
-                        elementsSelectable={isEditMode}
+                        // Disable dragging if the user is only in 'edit' mode (they can change props but not move)
+                        nodesDraggable={canMoveNodes} 
+                        nodesConnectable={canAddOrDelete}
+                        elementsSelectable={canEditProperties}
+                        // UI Feedback
+                        paneMoveable={true}
                         panOnDrag={true}
                         fitView
                         fitViewOptions={{ padding: 0.2 }}
