@@ -84,7 +84,7 @@ const TreeEditorRenderer = ({ session }) => {
                         .select('role')
                         .eq('tree_id', familyId)
                         .eq('user_email', session.user.email)
-                        .single();
+                        
 
                     if (data) setUserRole(data.role);
                     else setUserRole('viewonly');

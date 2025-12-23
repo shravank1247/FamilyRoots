@@ -72,15 +72,11 @@ const ShareTreeModal = ({ familyId, onClose }) => {
 
                     <div style={{ marginBottom: '20px' }}>
                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Permission</label>
-                        <select 
-                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}
-                            value={permission}
-                            onChange={(e) => setPermission(e.target.value)}
-                        >
-                            <option value="viewonly">View Only (Canvas Locked)</option>
-                            <option value="edit">Edit (Can change info, no moving)</option>
-                            <option value="full">Full Access (All controls)</option>
-                        </select>
+                        <select value={permission} onChange={(e) => setPermission(e.target.value)}>
+    <option value="viewonly">View Only</option>
+    <option value="edit">Edit (Props only)</option>
+    <option value="full">Full Access</option>
+</select>
                     </div>
 
                     <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
