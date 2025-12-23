@@ -37,24 +37,31 @@ const Dashboard = ({ session }) => {
     // --- FIX: Logic to handle tree creation ---
     const handleCreateTree = async (e) => {
     e.preventDefault();
-    if (!treeName.trim() || !session?.user) return;
+    
+    // Safety check: ensure session is ready
+    if (!treeName.trim() || !session?.user?.id) {
+        alert("Session not ready. Please wait a moment.");
+        return;
+    }
 
-    setMessage('Creating your tree...');
     try {
-        // 1. Create the family entry
-        const { data: newFamily, error } = await supabase
+        console.log("Creating tree for User UUID:", session.user.id);
+
+        // 1. Insert into families
+        const { data: newFamily, error: familyError } = await supabase
             .from('families')
             .insert([{ 
                 name: treeName, 
-                owner_id: session.user.id // Uses the ID from your session
+                owner_id: session.user.id // This UUID matches profiles.user_id
             }])
             .select()
             .single();
 
-        if (error) throw error;
+        if (familyError) throw familyError;
 
-        // 2. Automatically grant the creator 'full' access in family_shares
-        await supabase
+        // 2. IMPORTANT: Also add yourself to family_shares 
+        // This prevents the "viewonly" toolbar issue on your new tree
+        const { error: shareError } = await supabase
             .from('family_shares')
             .insert([{
                 family_id: newFamily.id,
@@ -62,14 +69,16 @@ const Dashboard = ({ session }) => {
                 permission_level: 'full'
             }]);
 
+        if (shareError) console.warn("Share entry failed, but tree was created:", shareError.message);
+
         // 3. Update UI
         setFamilies(prev => [newFamily, ...prev]);
         setTreeName('');
         setShowModal(false);
-        setMessage('Tree created successfully!');
+        
     } catch (err) {
-        console.error("Creation failed:", err.message);
-        setMessage(`Error: ${err.message}`);
+        console.error("Tree creation failed:", err.message);
+        alert(`Error: ${err.message}`);
     }
 };
     
