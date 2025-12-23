@@ -2,21 +2,21 @@ import React from 'react';
 import { createClient } from '@supabase/supabase-js';
 import './Login.css';
 
-// Accessing the Supabase credentials from your environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const Login = () => {
   
   const handleGoogleLogin = async () => {
     try {
+      // This ensures that if you are on myroot.online, it returns you there.
+      const currentOrigin = window.location.origin;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // This tells Supabase where to send the user after a successful Google login
-          redirectTo: window.location.origin,
+          redirectTo: currentOrigin, 
         },
       });
 
