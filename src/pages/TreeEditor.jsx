@@ -105,10 +105,30 @@ useEffect(() => {
 
     checkPermissions();
 }, [familyId, session]); // Runs again once session is loaded
+
+
+if (!session || !session.user) {
+            return (
+                <div className="loading-screen" style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100vh',
+                    background: '#f8fbf9',
+                    color: '#2d6a4f',
+                    fontWeight: 'bold'
+                }}>
+                    Checking Permissions...
+                </div>
+            );
+    }
+
+    
 // Define capability flags
 const canMoveNodes = userRole === 'full';
 const canEditProperties = userRole === 'edit' || userRole === 'full';
 const canAddOrDelete = userRole === 'full';
+
 
 
     // --- GENERATION COLOR CONFIG ---
@@ -555,21 +575,7 @@ const stats = getStats();
     setTimeout(() => setSaveStatus(null), 2000);
 }, [setNodes, setSelectedNodeData]);
 
-    if (!session || !session.user) {
-            return (
-                <div className="loading-screen" style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: '100vh',
-                    background: '#f8fbf9',
-                    color: '#2d6a4f',
-                    fontWeight: 'bold'
-                }}>
-                    Checking Permissions...
-                </div>
-            );
-    }
+    
 
     return (
         <div className="tree-editor-wrapper">
