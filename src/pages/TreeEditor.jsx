@@ -49,7 +49,7 @@ const nodeTypes = {
 };
 const edgeTypes = { spouseEdge: SpouseEdge };
 
-const TreeEditorRenderer = () => {
+const TreeEditorRenderer = ({ session }) => {
     const { familyId } = useParams();
     const navigate = useNavigate();
 
@@ -63,56 +63,8 @@ const TreeEditorRenderer = () => {
     const [treeName, setTreeName] = useState('Loading...');
     const [saveStatus, setSaveStatus] = useState(null);
 
-    // --- GENERATION COLOR CONFIG ---
-    const generationColors = {
-    0: '#FFD700', // Gold (Roots)
-    1: '#87CEEB', // Sky Blue
-    2: '#98FB98', // Pale Green
-    3: '#DDA0DD', // Plum
-    4: '#F08080', // Light Coral
-    5: '#40E0D0', // Turquoise
-    6: '#FF8C00', // Dark Orange
-    7: '#BA55D3', // Medium Orchid
-    8: '#B0C4DE', // Light Steel Blue
-    9: '#FFB6C1', // Light Pink
-};
 
-const defaultColor = '#D3D3D3';
-
-
-    const handlePrintTree = async () => {
-    const element = document.querySelector('.react-flow-container');
-    const canvas = await html2canvas(element, {
-        backgroundColor: '#ffffff',
-        logging: false,
-        useCORS: true, // Crucial for Cloudinary images
-        scale: 2 // Higher quality
-    });
-    
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`${treeName}-FamilyTree.pdf`);
-};
-
-const Dashboard = ({ session }) => { 
-  
-  // Now you can safely use session.user
-  const userEmail = session?.user?.email || "Guest";
-
-  return (
-    <div>
-      <p>Logged in as: {userEmail}</p>
-      {/* ... rest of your code ... */}
-    </div>
-  );
-};
-
-const [userRole, setUserRole] = useState('viewonly'); // Default to safest
+    const [userRole, setUserRole] = useState('viewonly'); // Default to safest
 
 useEffect(() => {
     const checkPermissions = async () => {
@@ -150,12 +102,47 @@ useEffect(() => {
 
     checkPermissions();
 }, [familyId, session]); // Runs again once session is loaded
-
-
 // Define capability flags
 const canMoveNodes = userRole === 'full';
 const canEditProperties = userRole === 'edit' || userRole === 'full';
 const canAddOrDelete = userRole === 'full';
+
+
+    // --- GENERATION COLOR CONFIG ---
+    const generationColors = {
+    0: '#FFD700', // Gold (Roots)
+    1: '#87CEEB', // Sky Blue
+    2: '#98FB98', // Pale Green
+    3: '#DDA0DD', // Plum
+    4: '#F08080', // Light Coral
+    5: '#40E0D0', // Turquoise
+    6: '#FF8C00', // Dark Orange
+    7: '#BA55D3', // Medium Orchid
+    8: '#B0C4DE', // Light Steel Blue
+    9: '#FFB6C1', // Light Pink
+};
+
+const defaultColor = '#D3D3D3';
+
+
+    const handlePrintTree = async () => {
+    const element = document.querySelector('.react-flow-container');
+    const canvas = await html2canvas(element, {
+        backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true, // Crucial for Cloudinary images
+        scale: 2 // Higher quality
+    });
+    
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`${treeName}-FamilyTree.pdf`);
+};
 
 //to filter on canvas
 const [filterText, setFilterText] = useState('');

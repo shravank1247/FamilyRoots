@@ -1,13 +1,12 @@
-// src/pages/Dashboard.jsx
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { checkAuth, fetchProfileId, signOut } from '../services/auth';
-import { fetchUserFamilies, createNewFamilyTree, deleteFamilyTree, renameFamilyTree , shareFamilyTree} from '../services/api';
+import { fetchUserFamilies, createNewFamilyTree, deleteFamilyTree, renameFamilyTree, shareFamilyTree } from '../services/api';
 import FamilyTreeCard from '../components/FamilyTreeCard';
 import Modal from '../components/Modal'; 
 
-const Dashboard = () => {
+const Dashboard = ({ session }) => {
+    // 1. Hooks MUST be at the top
     const [user, setUser] = useState(null);
     const [profileId, setProfileId] = useState(null);
     const [families, setFamilies] = useState([]);
@@ -18,31 +17,8 @@ const Dashboard = () => {
 
     const navigate = useNavigate();
 
-    // 1. Initial Authentication and Data Fetch
-    useEffect(() => {
-        async function authenticateAndLoad() {
-        try {
-            const authUser = await checkAuth();
-            if (authUser) {
-                setUser(authUser);
-                const pId = await fetchProfileId(authUser.id);
-                setProfileId(pId);
-                if (pId) {
-                    await loadFamilies(pId, authUser.email);
-                }
-            }
-        } catch (err) {
-            console.error(err);
-            setMessage("An error occurred while loading.");
-        } finally {
-            // This ensures the loading screen goes away no matter what
-            setIsLoading(false); 
-        }
-    }
-    authenticateAndLoad();
-}, []);// Clean dependencies
-
-    const loadFamilies = async (pId,email) => {
+    // 2. Load families helper
+    const loadFamilies = async (pId, email) => {
         const { families: fetchedFamilies, error } = await fetchUserFamilies(pId, email);
         if (error) {
             console.error('Failed to load families:', error);
@@ -52,15 +28,39 @@ const Dashboard = () => {
         }
     };
 
+    // 3. Initial Authentication and Data Fetch
+    useEffect(() => {
+        async function authenticateAndLoad() {
+            try {
+                // Use the prop 'session' if available, otherwise checkAuth
+                const authUser = session?.user || await checkAuth();
+                
+                if (authUser) {
+                    setUser(authUser);
+                    const pId = await fetchProfileId(authUser.id);
+                    setProfileId(pId);
+                    if (pId) {
+                        await loadFamilies(pId, authUser.email);
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                setMessage("An error occurred while loading.");
+            } finally {
+                setIsLoading(false); 
+            }
+        }
+        authenticateAndLoad();
+    }, [session]);
+
+    // --- Handlers ---
     const handleCreateTree = async (e) => {
         e.preventDefault();
-        setMessage('Creating...');
-
         if (!treeName.trim()) {
             setMessage('Tree name is required.');
             return;
         }
-
+        setMessage('Creating...');
         const { family, error } = await createNewFamilyTree(treeName, profileId);
 
         if (error) {
@@ -77,26 +77,13 @@ const Dashboard = () => {
     };
 
     const handleShareTree = async (familyId, email) => {
-    const { error } = await shareFamilyTree(familyId, email);
-    if (error) {
-        alert("Error sharing: " + error.message);
-    } else {
-        alert("Tree shared successfully with " + email);
-    }
-};
-
-const Dashboard = ({ session }) => { 
-  
-  // Now you can safely use session.user
-  const userEmail = session?.user?.email || "Guest";
-
-  return (
-    <div>
-      <p>Logged in as: {userEmail}</p>
-      {/* ... rest of your code ... */}
-    </div>
-  );
-};
+        const { error } = await shareFamilyTree(familyId, email);
+        if (error) {
+            alert("Error sharing: " + error.message);
+        } else {
+            alert("Tree shared successfully with " + email);
+        }
+    };
 
     const handleRenameTree = async (familyId, newName) => {
         const { error } = await renameFamilyTree(familyId, newName);
@@ -110,14 +97,14 @@ const Dashboard = ({ session }) => {
     };
 
     const handleDeleteTree = async (familyId, name) => {
-        if (window.confirm(`Are you sure you want to delete the entire "${name}" tree? This cannot be undone.`)) {
+        if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
             const { success, error } = await deleteFamilyTree(familyId);
             if (success) {
                 setFamilies(prev => prev.filter(f => f.id !== familyId));
-                setMessage(`"${name}" deleted successfully.`);
+                setMessage(`"${name}" deleted.`);
                 setTimeout(() => setMessage(''), 3000);
             } else {
-                alert("Error deleting tree: " + error.message);
+                alert("Error deleting: " + error.message);
             }
         }
     };
@@ -126,22 +113,21 @@ const Dashboard = ({ session }) => {
         navigate(`/tree-editor/${familyId}`); 
     };
 
+    // 4. Safety Render
     if (isLoading) {
         return <div className="loading-state">Loading application...</div>;
     }
 
-    const sortedFamilies = [...families].sort((a, b) => {
-    // This handles alphabetical sorting (A to Z)
-    // .toLowerCase() ensures "apple" and "Apple" are treated correctly
-    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-});
+    const sortedFamilies = [...families].sort((a, b) => 
+        a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+    );
 
     return (
         <div id="app-wrapper">
             <aside id="sidebar">
                 <div className="sidebar-header">
                     <h1 className="app-title">FamilyRoots</h1>
-                    <p id="user-display" className="user-info">{user?.email}</p>
+                    <p className="user-info">{user?.email || "Guest"}</p>
                 </div>
                 <nav className="main-nav">
                     <button onClick={() => navigate('/dashboard')} className="nav-link active">🏠 My Family Trees</button>
@@ -174,7 +160,6 @@ const Dashboard = ({ session }) => {
                     ) : (
                         <div className="empty-state">
                             <h3>No Family Trees Found</h3>
-                            <p>Start your journey by creating your first family tree.</p>
                             <button onClick={() => setShowModal(true)} className="primary-btn">Create Tree</button>
                         </div>
                     )}
