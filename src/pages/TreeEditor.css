@@ -450,3 +450,44 @@
     flex-shrink: 0; /* Prevents sidebar from shrinking the canvas too much */
     transition: transform 0.3s ease;
 }
+
+.canvas-header {
+    height: 70px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* This pushes brand to left, actions to right */
+    padding: 0 24px;
+    border-bottom: 2px solid #d8f3dc;
+    flex-shrink: 0;
+    z-index: 1000;
+}
+
+.toolbar-brand {
+    display: flex;
+    align-items: center;
+}
+
+.family-name-display {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2d6a4f; /* Using your brand green */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 250px; /* Prevents long names from squashing buttons */
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* For Mobile View */
+@media (max-width: 768px) {
+    .family-name-display {
+        font-size: 1rem;
+        max-width: 150px;
+    }
+}

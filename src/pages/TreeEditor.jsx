@@ -223,7 +223,7 @@ const toggleEditMode = () => {
             setTreeName(family.name); // This sets the actual name from DB
         } else {
             console.warn("Could not find family name, using fallback.");
-            setTreeName('Family Tree'); 
+            setTreeName(family.name); 
         }
 
         const { people } = await fetchPeopleByFamily(familyId); 
@@ -314,7 +314,7 @@ const toggleEditMode = () => {
 
             setNodes(initialNodes);
             setEdges(initialEdges);
-            setTreeName('Family Tree'); 
+            setTreeName(family.name); 
         }
     }, [familyId, navigate, selectedFullNode]);
 
@@ -486,7 +486,9 @@ const stats = getStats();
         <div className="tree-editor-wrapper">
         {/* 1. FIXED HEADER: Outside the main content flow */}
         <header className="canvas-header">
-            <h2>{treeName}</h2>
+            <h2><div className="toolbar-brand">
+                <span className="family-name-display">🌳 {treeName || "Loading Tree..."}</span>
+            </div></h2>
             <div className="header-actions">
                 <div className="search-container">
                     <input 
