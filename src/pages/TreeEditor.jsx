@@ -65,21 +65,7 @@ const TreeEditorRenderer = ({ session }) => {
     const [saveStatus, setSaveStatus] = useState(null);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [userRole, setUserRole] = useState('viewonly'); // Default to safest
-
-    useEffect(() => {
-            if (session?.user) {
-                setUser(session.user);
-                checkPermissions();
-            }
-        }, [familyId,session]);
-
-//         useEffect(() => {
-//     if (!session) {
-//         console.log("⏳ Waiting for session...");
-//         return; 
-//     }
-//     checkPermissions();
-// }, [familyId, session]);
+    
 
    useEffect(() => {
     const checkPermissions = async () => {
@@ -118,7 +104,13 @@ const TreeEditorRenderer = ({ session }) => {
     if (session) checkPermissions();
 }, [familyId, session]);
 
-
+// useEffect(() => {
+//     if (!session) {
+//         console.log("⏳ Waiting for session...");
+//         return; 
+//     }
+//     checkPermissions();
+// }, [familyId, session]);
 
         
 

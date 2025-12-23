@@ -36,23 +36,42 @@ const Dashboard = ({ session }) => {
 
     // --- FIX: Logic to handle tree creation ---
     const handleCreateTree = async (e) => {
-        e.preventDefault();
-        if (!treeName.trim()) return;
+    e.preventDefault();
+    if (!treeName.trim() || !session?.user) return;
 
-        setMessage('Creating...');
-        // session.user.id is used as the profile_id
-        const { family, error } = await createNewFamilyTree(treeName, session.user.id);
+    setMessage('Creating your tree...');
+    try {
+        // 1. Create the family entry
+        const { data: newFamily, error } = await supabase
+            .from('families')
+            .insert([{ 
+                name: treeName, 
+                owner_id: session.user.id // Uses the ID from your session
+            }])
+            .select()
+            .single();
 
-        if (error) {
-            setMessage(`Error: ${error.message}`);
-        } else {
-            // Update local state so the new tree shows up immediately
-            setFamilies([family, ...families]); 
-            setTreeName('');
-            setShowModal(false);
-            setMessage('');
-        }
-    };
+        if (error) throw error;
+
+        // 2. Automatically grant the creator 'full' access in family_shares
+        await supabase
+            .from('family_shares')
+            .insert([{
+                family_id: newFamily.id,
+                shared_with_email: session.user.email,
+                permission_level: 'full'
+            }]);
+
+        // 3. Update UI
+        setFamilies(prev => [newFamily, ...prev]);
+        setTreeName('');
+        setShowModal(false);
+        setMessage('Tree created successfully!');
+    } catch (err) {
+        console.error("Creation failed:", err.message);
+        setMessage(`Error: ${err.message}`);
+    }
+};
     
 
     // 2. EARLY RETURN MUST COME AFTER ALL HOOKS
