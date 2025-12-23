@@ -124,5 +124,80 @@ h1, h2, h3, label {
     color: var(--primary-green) !important;
 }
 
+/* 1. Pin the Toolbar to the top */
+.toolbar {
+    position: fixed; /* Fixes it to the screen */
+    top: 0;
+    left: 0;
+    width: 100%; /* Spans the full width */
+    height: 60px; /* Set a specific height */
+    z-index: 1000; /* Keeps it above everything else */
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-bottom: 1px solid #d8f3dc;
+}
 
+/* 2. Create a 'Main Content' area that doesn't hide behind the toolbar */
+.main-app-container {
+    margin-top: 60px; /* Matches the height of the toolbar */
+    display: flex;
+    height: calc(100vh - 60px);
+    overflow: hidden;
+}
 
+/* 3. The Properties Pane (Sidebar) */
+/* This will now appear below the toolbar because of the margin-top above */
+.properties-sidebar {
+    width: 300px;
+    height: 100%;
+    background-color: #f8fbf9;
+    border-left: 1px solid #ced4da;
+    overflow-y: auto;
+    position: relative; /* It stays inside the container, not pushing the header */
+    transition: all 0.3s ease;
+}
+
+/* 4. Improve Radio Button Visibility in the Pane */
+.properties-sidebar input[type="radio"] {
+    accent-color: #2d6a4f;
+    margin: 10px;
+    cursor: pointer;
+}
+
+.properties-sidebar label {
+    color: #1b4332;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* Ensure the body doesn't scroll, let the sub-containers handle it */
+body, html, #root, .app-shell {
+  height: 100%;
+  margin: 0;
+  overflow: hidden; 
+}
+
+/* This is the class for your toolbar inside TreeEditor.jsx */
+.toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: white;
+  z-index: 1000; /* Stays on top */
+  border-bottom: 1px solid #d8f3dc;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+}
+
+/* The container for the Tree and Sidebar */
+.main-app-container {
+  padding-top: 60px; /* Push content down so toolbar doesn't cover it */
+  display: flex;
+  height: 100vh;
+}
