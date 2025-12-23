@@ -93,8 +93,12 @@ const TreeEditorRenderer = ({ session }) => {
                 }
             };
             checkPermissions();
+            if (!session || !session.user) {
+        return <div className="loading-screen">Checking Permissions...</div>;
+    }
         }, [familyId, session]);
 
+        
 
     // --- GENERATION COLOR CONFIG ---
     const generationColors = {
@@ -545,9 +549,7 @@ const canMoveNodes = userRole === 'full';
 const canEditProperties = userRole === 'edit' || userRole === 'full';
 const canAddOrDelete = userRole === 'full';
 
-if (!session || !session.user) {
-        return <div className="loading-screen">Checking Permissions...</div>;
-    }
+
 
     return (
         <div className="tree-editor-wrapper">
