@@ -53,9 +53,17 @@ const Dashboard = ({ session }) => {
             setMessage('');
         }
     };
+    
 
     // 2. EARLY RETURN MUST COME AFTER ALL HOOKS
     if (isLoading) return <div className="loading">Loading application...</div>;
+
+    const sortedFamilies = [...families].sort((a, b) => {
+    // This handles alphabetical sorting (A to Z)
+    // .toLowerCase() ensures "apple" and "Apple" are treated correctly
+    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+});
+    
 
     return (
         <div id="app-wrapper">
@@ -83,8 +91,8 @@ const Dashboard = ({ session }) => {
                 </header>
 
                 <div className="tree-grid">
-                    {families.length > 0 ? (
-                        families.map(family => (
+                    {sortedFamilies.length > 0 ? (
+                        sortedFamilies.map(family => (
                             <FamilyTreeCard 
                                 key={family.id} 
                                 family={family} 

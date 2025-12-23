@@ -93,12 +93,12 @@ const TreeEditorRenderer = ({ session }) => {
                 }
             };
             checkPermissions();
-            if (!session || !session.user) {
-        return <div className="loading-screen">Checking Permissions...</div>;
-    }
+            
         }, [familyId, session]);
 
-        
+        if (!session || !session.user) {
+        return <div className="loading-screen">Checking Permissions...</div>;
+    }
 
     // --- GENERATION COLOR CONFIG ---
     const generationColors = {
@@ -138,9 +138,6 @@ const defaultColor = '#D3D3D3';
 
 //to filter on canvas
 const [filterText, setFilterText] = useState('');
-
-// This effect runs whenever filterText changes
-// src/pages/TreeEditor.jsx
 
 useEffect(() => {
     setNodes((nds) =>
