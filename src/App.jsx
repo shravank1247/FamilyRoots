@@ -66,6 +66,10 @@ function App() {
 
   return (
     <Routes>
+      <Route 
+  path="/tree-editor/:familyId" 
+  element={session ? <TreeEditor session={session} /> : <Navigate to="/login" />} 
+/>
       {/* Public Routes */}
       <Route 
         path="/" 

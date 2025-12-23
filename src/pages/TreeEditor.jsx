@@ -105,32 +105,42 @@ const [userRole, setUserRole] = useState('viewonly'); // Default to safest
 
 useEffect(() => {
     const checkPermissions = async () => {
-        // Add a guard clause: If there is no session yet, don't run the check
-        if (!session || !session.user) return;
-
-        // 1. Check Super User status (now using optional chaining)
-        if (session.isSuperUser) {
-            setUserRole('full');
-            return;
+        // GUARD: If session is null (user not logged in), do nothing.
+        // This prevents the 'reading properties of null' error.
+        if (!session || !session.user) {
+            return; 
         }
 
-        // 2. Fetch from tree_permissions
         try {
+            // 1. Check Super User status first
+            if (session.isSuperUser) {
+                setUserRole('full');
+                return;
+            }
+
+            // 2. Check specific tree permissions
             const { data, error } = await supabase
                 .from('tree_permissions')
                 .select('role')
                 .eq('tree_id', familyId)
-                .eq('user_email', session.user.email) // The error was happening here
+                .eq('user_email', session.user.email)
                 .single();
 
-            if (data) setUserRole(data.role);
+            if (data) {
+                setUserRole(data.role);
+            } else {
+                setUserRole('viewonly'); // Default if no record found
+            }
         } catch (err) {
-            console.error("Permission check failed", err);
+            console.log("Not shared with this user, defaulting to viewonly");
+            setUserRole('viewonly');
         }
     };
 
     checkPermissions();
-}, [familyId, session]); // Dependency on session ensures it runs once session is ready
+}, [familyId, session]); // Runs again once session is loaded
+
+
 // Define capability flags
 const canMoveNodes = userRole === 'full';
 const canEditProperties = userRole === 'edit' || userRole === 'full';
