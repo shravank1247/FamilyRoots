@@ -10,7 +10,6 @@ import Modal from '../components/Modal';
 import ShareTreeModal from '../components/ShareTreeModal';
 
 const Dashboard = ({ session }) => {
-    // 1. ALL HOOKS MUST BE AT THE TOP
     const [user, setUser] = useState(null);
     const [families, setFamilies] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -22,26 +21,29 @@ const Dashboard = ({ session }) => {
     
     const navigate = useNavigate();
 
+    // --- DELETE LOGIC ---
     const handleDeleteClick = (id) => {
-    setDeletingId(id); // Open the warning modal
-};
-const processDelete = async () => {
-    if (!deletingId) return;
-    
-    setMessage('Deleting tree...');
-    const { error } = await deleteFamilyTree(deletingId); // Using your API service
+        console.log("Delete triggered for ID:", id);
+        setDeletingId(id); // This will now correctly trigger the Modal
+    };
 
-    if (error) {
-        setMessage(`Error: ${error.message}`);
-    } else {
-        setFamilies(families.filter(f => f.id !== deletingId));
-        setMessage('Tree deleted successfully.');
-        setDeletingId(null);
-        // Clear message after 3 seconds
-        setTimeout(() => setMessage(''), 3000);
-    }
-};
+    const processDelete = async () => {
+        if (!deletingId) return;
+        
+        setMessage('Deleting tree...');
+        const { error } = await deleteFamilyTree(deletingId);
 
+        if (error) {
+            setMessage(`Error: ${error.message}`);
+        } else {
+            setFamilies(families.filter(f => f.id !== deletingId));
+            setMessage('Tree deleted successfully.');
+            setDeletingId(null); // Close modal
+            setTimeout(() => setMessage(''), 3000);
+        }
+    };
+
+    // --- INITIAL LOAD ---
     useEffect(() => {
         if (session?.user) {
             setUser(session.user);
@@ -55,64 +57,49 @@ const processDelete = async () => {
         setIsLoading(false);
     };
 
-    // --- FIX: Logic to handle tree creation ---
+    // --- CREATE LOGIC ---
     const handleCreateTree = async (e) => {
-    e.preventDefault();
-    
-    // Safety check: ensure session is ready
-    if (!treeName.trim() || !session?.user?.id) {
-        alert("Session not ready. Please wait a moment.");
-        return;
-    }
+        e.preventDefault();
+        if (!treeName.trim() || !session?.user?.id) {
+            alert("Session not ready. Please wait a moment.");
+            return;
+        }
 
-    try {
-        console.log("Creating tree for User UUID:", session.user.id);
+        try {
+            const { data: newFamily, error: familyError } = await supabase
+                .from('families')
+                .insert([{ 
+                    name: treeName, 
+                    owner_id: session.user.id 
+                }])
+                .select()
+                .single();
 
-        // 1. Insert into families
-        const { data: newFamily, error: familyError } = await supabase
-            .from('families')
-            .insert([{ 
-                name: treeName, 
-                owner_id: session.user.id // This UUID matches profiles.user_id
-            }])
-            .select()
-            .single();
+            if (familyError) throw familyError;
 
-        if (familyError) throw familyError;
+            await supabase
+                .from('family_shares')
+                .insert([{
+                    family_id: newFamily.id,
+                    shared_with_email: session.user.email,
+                    permission_level: 'full'
+                }]);
 
-        // 2. IMPORTANT: Also add yourself to family_shares 
-        // This prevents the "viewonly" toolbar issue on your new tree
-        const { error: shareError } = await supabase
-            .from('family_shares')
-            .insert([{
-                family_id: newFamily.id,
-                shared_with_email: session.user.email,
-                permission_level: 'full'
-            }]);
+            setFamilies(prev => [newFamily, ...prev]);
+            setTreeName('');
+            setShowModal(false);
+            setMessage('Tree created successfully!');
+            setTimeout(() => setMessage(''), 3000);
+        } catch (err) {
+            alert(`Error: ${err.message}`);
+        }
+    };
 
-        if (shareError) console.warn("Share entry failed, but tree was created:", shareError.message);
-
-        // 3. Update UI
-        setFamilies(prev => [newFamily, ...prev]);
-        setTreeName('');
-        setShowModal(false);
-        
-    } catch (err) {
-        console.error("Tree creation failed:", err.message);
-        alert(`Error: ${err.message}`);
-    }
-};
-    
-
-    // 2. EARLY RETURN MUST COME AFTER ALL HOOKS
     if (isLoading) return <div className="loading">Loading application...</div>;
 
-    const sortedFamilies = [...families].sort((a, b) => {
-    // This handles alphabetical sorting (A to Z)
-    // .toLowerCase() ensures "apple" and "Apple" are treated correctly
-    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-});
-    
+    const sortedFamilies = [...families].sort((a, b) => 
+        a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+    );
 
     return (
         <div id="app-wrapper">
@@ -139,6 +126,13 @@ const processDelete = async () => {
                     <button onClick={() => setShowModal(true)} className="primary-btn">Create New Tree</button>
                 </header>
 
+                {/* Status Message Display */}
+                {message && (
+                    <div className={`status-banner ${message.includes('Error') ? 'error' : 'success'}`}>
+                        {message}
+                    </div>
+                )}
+
                 <div className="tree-grid">
                     {sortedFamilies.length > 0 ? (
                         sortedFamilies.map(family => (
@@ -146,7 +140,8 @@ const processDelete = async () => {
                                 key={family.id} 
                                 family={family} 
                                 onView={(id) => navigate(`/tree-editor/${id}`)}
-                                onDelete={deleteFamilyTree}
+                                // FIX: Pass the local handler, not the API service directly
+                                onDelete={() => handleDeleteClick(family.id)} 
                                 onRename={renameFamilyTree}
                                 onShare={() => setSelectedTreeForShare(family.id)} 
                             />
@@ -165,23 +160,24 @@ const processDelete = async () => {
                         onClose={() => setSelectedTreeForShare(null)} 
                     />
                 )}
-                {message && <p className="status-message">{message}</p>}
             </main>
 
-<Modal 
-            show={!!deletingId} 
-            onClose={() => setDeletingId(null)} 
-            title="Confirm Deletion"
-        >
-            <div className="warning-content">
-                <p>Are you sure you want to delete this family tree? This action <strong>cannot be undone</strong> and all member data will be lost.</p>
-                <div className="modal-actions">
-                    <button className="secondary-btn" onClick={() => setDeletingId(null)}>Cancel</button>
-                    <button className="delete-btn" onClick={processDelete}>Delete Forever</button>
+            {/* DELETE CONFIRMATION MODAL */}
+            <Modal 
+                show={!!deletingId} 
+                onClose={() => setDeletingId(null)} 
+                title="Confirm Deletion"
+            >
+                <div className="warning-content">
+                    <p>Are you sure you want to delete this family tree? This action <strong>cannot be undone</strong> and all member data will be lost.</p>
+                    <div className="modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                        <button className="secondary-btn" onClick={() => setDeletingId(null)}>Cancel</button>
+                        <button className="delete-btn" style={{ backgroundColor: '#dc3545', color: 'white' }} onClick={processDelete}>Delete Forever</button>
+                    </div>
                 </div>
-            </div>
-        </Modal>
-            {/* --- FIX: Added form content as children of the Modal --- */}
+            </Modal>
+
+            {/* CREATE TREE MODAL */}
             <Modal 
                 show={showModal} 
                 onClose={() => { setShowModal(false); setMessage(''); }} 
