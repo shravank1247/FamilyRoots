@@ -12,36 +12,28 @@ function App() {
 
   useEffect(() => {
     // We create an internal async function so we can use 'await' safely
-    // Inside App.jsx - useEffect
-// inside App.jsx
+
+// App.jsx
 const initializeAuth = async () => {
-  try {
-    const { data: { session: initialSession } } = await supabase.auth.getSession();
-    
-    if (initialSession && initialSession.user) {
-      // 1. Fetch as an array (remove .single()) to prevent PGRST116 crash
-      const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('is_super_user')
-        .eq('id', initialSession.user.id);
+    try {
+        const { data: { session: initSession } } = await supabase.auth.getSession();
+        if (initSession) {
+            // Use .select() without .single() to avoid the error
+            const { data: profileData } = await supabase
+                .from('profiles')
+                .select('is_super_user')
+                .eq('id', initSession.user.id);
 
-      // 2. Safely check if a profile exists
-      const isSuper = (profiles && profiles.length > 0) ? profiles[0].is_super_user : false;
-
-      setSession({ 
-        ...initialSession, 
-        isSuperUser: isSuper 
-      });
-    } else {
-      setSession(null);
+            const isSuper = profileData && profileData.length > 0 ? profileData[0].is_super_user : false;
+            setSession({ ...initSession, isSuperUser: isSuper });
+        } else {
+            setSession(null);
+        }
+    } catch (e) {
+        console.error(e);
+    } finally {
+        setLoading(false); // ALWAYS runs, so you never get stuck
     }
-  } catch (error) {
-    console.error("Auth error:", error);
-    setSession(null);
-  } finally {
-    // 3. THIS IS CRITICAL: Always turn off loading, even if there's an error
-    setLoading(false); 
-  }
 };
 
 // Temporary check to see if loading ever finishes
