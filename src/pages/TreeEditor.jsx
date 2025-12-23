@@ -77,9 +77,9 @@ const TreeEditorRenderer = ({ session }) => {
                 return;
             }
 
-            // Look at the correct table: Family_Shares
+            // Look at the correct table: family_shares
             const { data, error } = await supabase
-                .from('Family_Shares') 
+                .from('family_shares') 
                 .select('role')
                 .eq('family_id', familyId)
                 .eq('shared_with_email', session.user.email);

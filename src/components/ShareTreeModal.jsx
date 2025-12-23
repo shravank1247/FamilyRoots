@@ -9,7 +9,7 @@ const ShareTreeModal = ({ familyId, onClose }) => {
 
     const fetchCollaborators = useCallback(async () => {
         const { data, error } = await supabase
-            .from('Family_Shares') 
+            .from('family_shares') 
             .select('*')
             .eq('family_id', familyId);
         if (!error && data) setCollaborators(data);
@@ -20,8 +20,8 @@ const ShareTreeModal = ({ familyId, onClose }) => {
     const handleShare = async (e) => {
         e.preventDefault();
         setLoading(true);
-        // Save to Family_Shares table
-        const { error } = await supabase.from('Family_Shares').upsert({ 
+        // Save to family_shares table
+        const { error } = await supabase.from('family_shares').upsert({ 
             family_id: familyId, 
             shared_with_email: email.toLowerCase().trim(), 
             role: permission 
@@ -36,7 +36,7 @@ const ShareTreeModal = ({ familyId, onClose }) => {
 
     const removeAccess = async (userEmail) => {
         const { error } = await supabase
-            .from('Family_Shares')
+            .from('family_shares')
             .delete()
             .eq('family_id', familyId)
             .eq('shared_with_email', userEmail);
