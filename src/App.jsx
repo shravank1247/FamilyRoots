@@ -80,7 +80,7 @@ function App() {
       />
       <Route 
         path="/tree-editor/:familyId" 
-        element={session ? <TreeEditor session={session} /> : <Navigate to="/login" />} 
+        element={session ? <TreeEditorRenderer session={session} /> : <Navigate to="/login" />} 
       />
       
       <Route path="/profile" element={<div>Profile Page - Coming Soon</div>} />

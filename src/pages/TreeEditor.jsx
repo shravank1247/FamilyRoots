@@ -123,7 +123,13 @@ const TreeEditorRenderer = ({ session }) => {
     checkPermissions();
 }, [familyId, session]);
 
-
+useEffect(() => {
+    if (!session) {
+        console.log("⏳ Waiting for session...");
+        return; 
+    }
+    checkPermissions();
+}, [familyId, session]);
 
         
 
