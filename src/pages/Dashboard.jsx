@@ -4,7 +4,7 @@ import { checkAuth, fetchProfileId, signOut } from '../services/auth';
 import { fetchUserFamilies, createNewFamilyTree, deleteFamilyTree, renameFamilyTree, shareFamilyTree } from '../services/api';
 import FamilyTreeCard from '../components/FamilyTreeCard';
 import Modal from '../components/Modal'; 
-
+const [selectedTreeForShare, setSelectedTreeForShare] = useState(null);
 const Dashboard = ({ session }) => {
     // 1. Hooks MUST be at the top
     const [user, setUser] = useState(null);
@@ -14,6 +14,7 @@ const Dashboard = ({ session }) => {
     const [showModal, setShowModal] = useState(false);
     const [treeName, setTreeName] = useState('');
     const [message, setMessage] = useState('');
+    const [selectedTreeForShare, setSelectedTreeForShare] = useState(null);
 
     const navigate = useNavigate();
 
@@ -154,7 +155,12 @@ const Dashboard = ({ session }) => {
                                 onView={handleViewTree}
                                 onDelete={handleDeleteTree}
                                 onRename={handleRenameTree}
-                                onShare={handleShareTree}
+                                {selectedTreeForShare && (
+    <ShareTreeModal 
+        familyId={selectedTreeForShare} 
+        onClose={() => setSelectedTreeForShare(null)} 
+    />
+)}
                             />
                         ))
                     ) : (
