@@ -1,8 +1,7 @@
 // src/pages/TreeEditor.jsx
-import { supabase } from '../config/supabaseClient';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ShareTreeModal from '../components/ShareTreeModal';
 import ReactFlow, { 
     Controls, 
     Background, 
@@ -50,7 +49,7 @@ const nodeTypes = {
 };
 const edgeTypes = { spouseEdge: SpouseEdge };
 
-const TreeEditorRenderer = ({ session }) => {
+const TreeEditorRenderer = () => {
     const { familyId } = useParams();
     const navigate = useNavigate();
 
@@ -63,56 +62,6 @@ const TreeEditorRenderer = ({ session }) => {
     const [isLayingOut, setIsLayingOut] = useState(false);
     const [treeName, setTreeName] = useState('Loading...');
     const [saveStatus, setSaveStatus] = useState(null);
-    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-    const [userRole, setUserRole] = useState('viewonly'); // Default to safest
-    
-
-   useEffect(() => {
-    const checkPermissions = async () => {
-        // Log to verify session presence
-        console.log("🛠️ Checking permissions. Session present:", !!session);
-        
-        if (!session?.user) return;
-
-        try {
-            // Master Override
-            if (session.user.email === 'indarkumar47@gmail.com') {
-                setUserRole('full');
-                return;
-            }
-
-            // Corrected Query for 'family_shares' table
-            const { data, error } = await supabase
-                .from('family_shares') 
-                .select('role') // Match your DB column name
-                .eq('family_id', familyId)
-                .eq('shared_with_email', session.user.email);
-
-            if (data && data.length > 0) {
-                const dbRole = data[0].role;
-                // Map DB 'view' to UI 'viewonly'
-                setUserRole(dbRole === 'view' ? 'viewonly' : dbRole);
-            } else {
-                setUserRole('viewonly');
-            }
-        } catch (err) {
-            console.error("Permission check failed", err);
-            setUserRole('viewonly');
-        }
-    };
-
-    if (session) checkPermissions();
-}, [familyId, session]);
-
-// useEffect(() => {
-//     if (!session) {
-//         console.log("⏳ Waiting for session...");
-//         return; 
-//     }
-//     checkPermissions();
-// }, [familyId, session]);
-
-        
 
     // --- GENERATION COLOR CONFIG ---
     const generationColors = {
@@ -150,8 +99,12 @@ const defaultColor = '#D3D3D3';
     pdf.save(`${treeName}-FamilyTree.pdf`);
 };
 
+
 //to filter on canvas
 const [filterText, setFilterText] = useState('');
+
+// This effect runs whenever filterText changes
+// src/pages/TreeEditor.jsx
 
 useEffect(() => {
     setNodes((nds) =>
@@ -392,7 +345,7 @@ const toggleEditMode = () => {
             fetchTreeDetails();
         }
     }, [familyId]);
-
+    
     // --- NEW INTELLIGENT DRAG HANDLER ---
     const onNodeDragStop = useCallback((event, node) => {
         if (!reactFlowInstance) return;
@@ -555,15 +508,10 @@ const stats = getStats();
     setTimeout(() => setSaveStatus(null), 2000);
 }, [setNodes, setSelectedNodeData]);
 
-    // Define capability flags
-const canMoveNodes = userRole === 'full';
-const canEditProperties = userRole === 'edit' || userRole === 'full';
-const canAddOrDelete = userRole === 'full';
-
     return (
         <div className="tree-editor-wrapper">
         {/* 1. FIXED HEADER: Outside the main content flow */}
-      <header className="canvas-header">
+        <header className="canvas-header">
             <h2><div className="toolbar-brand">
                 <span className="family-name-display">🌳 {treeName || "Loading Tree..."}</span>
             </div></h2>
@@ -614,19 +562,15 @@ const canAddOrDelete = userRole === 'full';
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
-                        // Only allow editing properties if role is 'edit' or 'full'
-                        onNodeClick={canEditProperties ? onNodeClick : undefined}
+                        onNodeClick={isEditMode ? onNodeClick : undefined}
                         onConnect={onConnect}
                         onPaneClick={onPaneClick}
                         onNodeDragStop={onNodeDragStop}
                         nodeTypes={nodeTypes}
                         edgeTypes={edgeTypes} 
-                        // Disable dragging if the user is only in 'edit' mode (they can change props but not move)
-                        nodesDraggable={canMoveNodes} 
-                        nodesConnectable={canAddOrDelete}
-                        elementsSelectable={canEditProperties}
-                        // UI Feedback
-                        paneMoveable={true}
+                        nodesDraggable={isEditMode}
+                        nodesConnectable={isEditMode}
+                        elementsSelectable={isEditMode}
                         panOnDrag={true}
                         fitView
                         fitViewOptions={{ padding: 0.2 }}
@@ -672,7 +616,7 @@ const canAddOrDelete = userRole === 'full';
     );
 };
 
-const TreeEditor = ({ session }) => (
+const TreeEditor = () => (
     <ReactFlowProvider>
         <TreeEditorRenderer />
     </ReactFlowProvider>
