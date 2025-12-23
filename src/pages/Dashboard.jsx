@@ -127,12 +127,13 @@ const Dashboard = ({ session }) => {
             >
                 <form onSubmit={handleCreateTree} className="form-content">
                     <div className="form-group" style={{ marginBottom: '15px' }}>
-                        <label htmlFor="tree-name" style={{ display: 'block', marginBottom: '5px' }}>Family Tree Name</label>
+                        <label style={{ display: 'block', marginBottom: '5px' }}>Family Tree Name</label>
                         <input 
                             type="text" 
                             required 
                             value={treeName} 
                             onChange={(e) => setTreeName(e.target.value)}
+                            placeholder="e.g., The Smith Family"
                             style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
                         />
                     </div>

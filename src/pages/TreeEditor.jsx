@@ -99,10 +99,7 @@ const TreeEditorRenderer = ({ session }) => {
     checkPermissions();
 }, [familyId, session]);
 
-// // 3. THE "SAFETY GATE" (Only return JSX here, after all hooks)
-// if (!session || !session.user) {
-//     return <div className="loading-screen">Checking Permissions...</div>; //
-// }
+
 
         
 
@@ -552,7 +549,10 @@ const canMoveNodes = userRole === 'full';
 const canEditProperties = userRole === 'edit' || userRole === 'full';
 const canAddOrDelete = userRole === 'full';
 
-
+// 3. THE "SAFETY GATE" (Only return JSX here, after all hooks)
+if (!session || !session.user) {
+    return <div className="loading-screen">Checking Permissions...</div>; //
+}
 
     return (
         <div className="tree-editor-wrapper">

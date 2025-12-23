@@ -2,96 +2,72 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../config/supabaseClient';
 
 const ShareTreeModal = ({ familyId, onClose }) => {
-    // Hooks must always be at the top
     const [email, setEmail] = useState('');
-    const [permission, setPermission] = useState('viewonly');
+    const [permission, setPermission] = useState('view'); // Default to 'view'
     const [loading, setLoading] = useState(false);
     const [collaborators, setCollaborators] = useState([]);
 
-    // We use useCallback to keep the function stable
     const fetchCollaborators = useCallback(async () => {
         const { data, error } = await supabase
-            .from('tree_permissions')
+            .from('Family_Shares') 
             .select('*')
-            .eq('tree_id', familyId);
-        
+            .eq('family_id', familyId);
         if (!error && data) setCollaborators(data);
     }, [familyId]);
 
-    useEffect(() => {
-        if (familyId) {
-            fetchCollaborators();
-        }
-    }, [familyId, fetchCollaborators]);
+    useEffect(() => { fetchCollaborators(); }, [fetchCollaborators]);
 
     const handleShare = async (e) => {
         e.preventDefault();
         setLoading(true);
+        // Save to Family_Shares table
+        const { error } = await supabase.from('Family_Shares').upsert({ 
+            family_id: familyId, 
+            shared_with_email: email.toLowerCase().trim(), 
+            role: permission 
+        }, { onConflict: 'family_id, shared_with_email' });
 
-        const { error } = await supabase
-            .from('tree_permissions')
-            .upsert({ 
-                tree_id: familyId, 
-                user_email: email.toLowerCase().trim(), 
-                role: permission 
-            }, { onConflict: 'tree_id, user_email' });
-
-        setLoading(false);
-        if (error) {
-            alert(error.message);
-        } else {
-            alert(`Shared successfully!`);
+        if (!error) {
             setEmail('');
-            fetchCollaborators(); 
+            fetchCollaborators();
         }
+        setLoading(false);
+    };
+
+    const removeAccess = async (userEmail) => {
+        const { error } = await supabase
+            .from('Family_Shares')
+            .delete()
+            .eq('family_id', familyId)
+            .eq('shared_with_email', userEmail);
+        if (!error) fetchCollaborators();
     };
 
     return (
-        <div className="modal-overlay" style={{
-            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-            background: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', 
-            zIndex: 9999 
-        }}>
-            <div className="modal-content" style={{ 
-                background: 'white', padding: '25px', borderRadius: '12px', 
-                width: '90%', maxWidth: '400px', color: '#333'
-            }}>
-                <h3 style={{ color: '#2d6a4f', marginTop: 0 }}>Share Tree</h3>
-                
+        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 3000 }}>
+            <div className="modal-content" style={{ background: 'white', padding: '25px', borderRadius: '12px', width: '380px', color: '#333' }}>
+                <h3>Share Family Tree</h3>
                 <form onSubmit={handleShare}>
-                    <div style={{ marginBottom: '15px' }}>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email</label>
-                        <input 
-                            type="email" 
-                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box' }}
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required 
-                        />
-                    </div>
-
-                    <div style={{ marginBottom: '20px' }}>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Permission</label>
-                        <select value={permission} onChange={(e) => setPermission(e.target.value)}>
-    <option value="viewonly">View Only</option>
-    <option value="edit">Edit (Props only)</option>
-    <option value="full">Full Access</option>
-</select>
-                    </div>
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter email" required style={{ width: '100%', padding: '10px', marginBottom: '10px', border: '1px solid #ccc', borderRadius: '4px' }} />
+                    
+                    <select value={permission} onChange={e => setPermission(e.target.value)} style={{ width: '100%', padding: '10px', marginBottom: '15px' }}>
+                        <option value="view">View Only</option>
+                        <option value="edit">Edit Properties</option>
+                        <option value="full">Full Access</option>
+                    </select>
 
                     <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                        <button type="button" onClick={onClose} style={{ padding: '8px 15px', border: 'none', background: '#eee', borderRadius: '4px' }}>Cancel</button>
-                        <button type="submit" disabled={loading} style={{ background: '#2d6a4f', color: 'white', padding: '8px 15px', border: 'none', borderRadius: '4px' }}>
-                            {loading ? '...' : 'Share'}
-                        </button>
+                        <button type="button" onClick={onClose} className="secondary-btn">Cancel</button>
+                        <button type="submit" className="primary-btn" disabled={loading}>{loading ? 'Sharing...' : 'Share'}</button>
                     </div>
                 </form>
 
-                <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
-                    <h4 style={{ margin: '0 0 10px 0', fontSize: '14px' }}>Current Access</h4>
+                <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
+                    <h4>Current Access</h4>
                     {collaborators.map(c => (
-                        <div key={c.user_email} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '5px' }}>
-                            <span>{c.user_email} <strong>({c.role})</strong></span>
+                        <div key={c.shared_with_email} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '8px' }}>
+                            <span>{c.shared_with_email} (<strong>{c.role}</strong>)</span>
+                            <button onClick={() => removeAccess(c.shared_with_email)} style={{ color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}>Remove</button>
                         </div>
                     ))}
                 </div>
@@ -99,5 +75,3 @@ const ShareTreeModal = ({ familyId, onClose }) => {
         </div>
     );
 };
-
-export default ShareTreeModal;
