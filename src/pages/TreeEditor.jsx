@@ -1,5 +1,5 @@
 // src/pages/TreeEditor.jsx
-
+import { supabase } from '../config/supabaseClient';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactFlow, { 
