@@ -320,6 +320,32 @@ const toggleEditMode = () => {
 
     useEffect(() => { loadData(); }, [loadData]);
 
+
+    useEffect(() => {
+        const fetchTreeDetails = async () => {
+            try {
+                // Fetch the family name from your 'families' table
+                const { data, error } = await supabase
+                    .from('families') // Ensure this matches your Supabase table name
+                    .select('name')
+                    .eq('id', familyId)
+                    .single();
+
+                if (error) throw error;
+                if (data) {
+                    setTreeName(data.name);
+                }
+            } catch (error) {
+                console.error('Error fetching tree name:', error.message);
+                setTreeName("Unknown Tree");
+            }
+        };
+
+        if (familyId) {
+            fetchTreeDetails();
+        }
+    }, [familyId]);
+    
     // --- NEW INTELLIGENT DRAG HANDLER ---
     const onNodeDragStop = useCallback((event, node) => {
         if (!reactFlowInstance) return;

@@ -466,28 +466,31 @@
 .toolbar-brand {
     display: flex;
     align-items: center;
+    gap: 8px;
 }
 
 .family-name-display {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: #2d6a4f; /* Using your brand green */
+    color: #2d6a4f; /* Your brand green */
+    letter-spacing: -0.3px;
+    /* Prevents the name from breaking the layout on small screens */
+    max-width: 200px; 
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 250px; /* Prevents long names from squashing buttons */
+}
+
+/* On very small mobile screens, we can shrink the font slightly */
+@media (max-width: 480px) {
+    .family-name-display {
+        font-size: 0.95rem;
+        max-width: 120px;
+    }
 }
 
 .header-actions {
     display: flex;
     gap: 10px;
     align-items: center;
-}
-
-/* For Mobile View */
-@media (max-width: 768px) {
-    .family-name-display {
-        font-size: 1rem;
-        max-width: 150px;
-    }
 }
