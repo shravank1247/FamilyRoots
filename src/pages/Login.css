@@ -1,75 +1,100 @@
-.login-wrapper {
+/* Container to center the card on screen */
+.login-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background-color: #f0f2f5;
+  height: 100vh;
+  background-color: #f4f7f6;
   padding: 20px;
 }
 
+/* The Login Card */
 .login-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 15px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
   text-align: center;
+  border: 1px solid #e0e0e0;
 }
 
-.brand-logo {
-  color: #2d6a4f;
-  font-size: 1.8rem;
-  margin-bottom: 0.5rem;
+.app-name {
+  color: #2d6a4f; /* Elegant Green */
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 10px;
 }
 
-.welcome-text {
-  color: #666;
-  margin-bottom: 1.5rem;
+.divider-line {
+  height: 3px;
+  width: 40px;
+  background-color: #2d6a4f;
+  margin: 0 auto 30px auto;
+  border-radius: 2px;
 }
 
-.input-field {
-  text-align: left;
-  margin-bottom: 1rem;
+.content-section h2 {
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 10px;
 }
 
-.input-field label {
-  display: block;
-  font-size: 0.9rem;
-  margin-bottom: 5px;
-  font-weight: 500;
+.content-section p {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 40px;
+  line-height: 1.5;
 }
 
-.input-field input {
+/* Custom Google Button - Branded for your app */
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: #fafafa;
-}
-
-.submit-btn {
-  width: 100%;
-  padding: 12px;
-  background: #2d6a4f;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
+  padding: 14px;
+  background-color: #ffffff;
+  border: 2px solid #2d6a4f;
+  border-radius: 12px;
   cursor: pointer;
-  margin-top: 10px;
+  transition: all 0.2s ease;
 }
 
-.toggle-auth {
-  margin-top: 20px;
-  font-size: 0.9rem;
+.google-btn img {
+  width: 20px;
+  margin-right: 12px;
 }
 
-.toggle-auth button {
-  background: none;
-  border: none;
+.google-btn span {
+  font-size: 16px;
+  font-weight: 600;
   color: #2d6a4f;
-  font-weight: bold;
-  cursor: pointer;
-  margin-left: 5px;
+}
+
+.google-btn:hover {
+  background-color: #2d6a4f;
+}
+
+.google-btn:hover span {
+  color: #ffffff;
+}
+
+.login-footer {
+  margin-top: 40px;
+}
+
+.login-footer p {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 4px;
+}
+
+.login-footer small {
+  color: #2d6a4f;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }

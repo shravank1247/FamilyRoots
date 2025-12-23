@@ -1,48 +1,38 @@
-// src/pages/Login.jsx
-
-import React, { useEffect,useState } from 'react';
-import { signInWithGoogle, checkAuth } from '../services/auth'; 
-import { useNavigate } from 'react-router-dom';
-import './Login.css'; // We will create this next
+import React from 'react';
+import './Login.css';
 
 const Login = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  
+  const handleGoogleLogin = () => {
+    console.log("Redirecting to Google Auth...");
+    // Trigger your existing Google Sign-In logic here
+  };
 
   return (
-    <div className="login-wrapper">
+    <div className="login-container">
       <div className="login-card">
-        <h1 className="brand-logo">HierarchicalRoots</h1>
-        <p className="welcome-text">{isLogin ? 'Welcome Back!' : 'Create your Tree'}</p>
-        
-        <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
-          <div className="input-field">
-            <label>Email Address</label>
-            <input type="email" placeholder="name@example.com" required />
-          </div>
-
-          <div className="input-field">
-            <label>Password</label>
-            <input type="password" placeholder="••••••••" required />
-          </div>
-
-          {!isLogin && (
-            <div className="input-field">
-              <label>Confirm Password</label>
-              <input type="password" placeholder="••••••••" required />
-            </div>
-          )}
-
-          <button type="submit" className="submit-btn">
-            {isLogin ? 'Sign In' : 'Sign Up'}
-          </button>
-        </form>
-
-        <div className="toggle-auth">
-          <span>{isLogin ? "Don't have an account?" : "Already have an account?"}</span>
-          <button onClick={() => setIsLogin(!isLogin)}>
-            {isLogin ? 'Register Now' : 'Login'}
-          </button>
+        <div className="logo-section">
+          <h1 className="app-name">HierarchicalRoots</h1>
+          <div className="divider-line"></div>
         </div>
+        
+        <div className="content-section">
+          <h2>Welcome Back</h2>
+          <p>Sign in to access and manage your family tree securely.</p>
+        </div>
+
+        <button className="google-btn" onClick={handleGoogleLogin}>
+          <img 
+            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+            alt="Google Logo" 
+          />
+          <span>Continue with Google</span>
+        </button>
+
+        <footer className="login-footer">
+          <p>© 2024 HierarchicalRoots</p>
+          <small>Secure Gmail Authentication</small>
+        </footer>
       </div>
     </div>
   );
