@@ -79,6 +79,31 @@
 }
 }
 
+.status-banner {
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 500;
+}
+.status-banner.success { background: #e6fffa; color: #2c7a7b; border: 1px solid #b2f5ea; }
+.status-banner.error { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
+
+.delete-btn {
+    background-color: #e53e3e;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.delete-btn:hover { background-color: #c53030; }
+
+.warning-content p {
+    color: #4a5568;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
 
 
 
