@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '../config/supabaseClient';
+import ShareTreeModal from '../components/ShareTreeModal';
 import ReactFlow, { 
     Controls, 
     Background, 
@@ -62,6 +64,7 @@ const TreeEditorRenderer = ({ session }) => {
     const [isLayingOut, setIsLayingOut] = useState(false);
     const [treeName, setTreeName] = useState('Loading...');
     const [saveStatus, setSaveStatus] = useState(null);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
 
     const [userRole, setUserRole] = useState('viewonly'); // Default to safest
@@ -705,7 +708,7 @@ const stats = getStats();
     );
 };
 
-const TreeEditor = () => (
+const TreeEditor = ({ session }) => (
     <ReactFlowProvider>
         <TreeEditorRenderer />
     </ReactFlowProvider>
