@@ -68,59 +68,39 @@ const TreeEditorRenderer = ({ session }) => {
 
    useEffect(() => {
     const checkPermissions = async () => {
-        // Log 1: Check if the hook even starts and what data it has
-        console.log("🛠️ Starting Permission Check for familyId:", familyId);
+        // Log to verify session presence
+        console.log("🛠️ Checking permissions. Session present:", !!session);
         
-        if (!session?.user) {
-            console.log("⚠️ No active session found. Defaulting to viewonly.");
-            return;
-        }
+        if (!session?.user) return;
 
         try {
-            // Log 2: Master Override Check
-            console.log("👤 Checking Master Override for:", session.user.email);
-            if (session.isSuperUser || session.user.email === 'indarkumar47@gmail.com') {
-                console.log("✅ Master Override Triggered: Granting 'full' access.");
+            // Master Override
+            if (session.user.email === 'indarkumar47@gmail.com') {
                 setUserRole('full');
                 return;
             }
 
-            // Log 3: Database Query Prep
-            console.log("🔍 Querying family_shares table...");
+            // Corrected Query for 'family_shares' table
             const { data, error } = await supabase
                 .from('family_shares') 
-                .select('role')
+                .select('role') // Match your DB column name
                 .eq('family_id', familyId)
                 .eq('shared_with_email', session.user.email);
 
-            if (error) {
-                console.error("❌ Supabase Query Error:", error.message);
-                throw error;
-            }
-
-            // Log 4: Analyze Data Result
-            console.log("📊 Database Response Data:", data);
-
             if (data && data.length > 0) {
                 const dbRole = data[0].role;
-                console.log(`🎯 Match Found! DB Role: "${dbRole}"`);
-                
-                // Map the role for the frontend
-                const finalRole = (dbRole === 'view' ? 'viewonly' : dbRole);
-                console.log(`Setting state userRole to: "${finalRole}"`);
-                setUserRole(finalRole);
+                // Map DB 'view' to UI 'viewonly'
+                setUserRole(dbRole === 'view' ? 'viewonly' : dbRole);
             } else {
-                // Log 5: No matching row found
-                console.log("🛑 No permission row found for this email/family combo. Defaulting to 'viewonly'.");
                 setUserRole('viewonly');
             }
         } catch (err) {
-            console.error("💥 Fatal Permission Check Error:", err);
+            console.error("Permission check failed", err);
             setUserRole('viewonly');
         }
     };
 
-    checkPermissions();
+    if (session) checkPermissions();
 }, [familyId, session]);
 
 useEffect(() => {
