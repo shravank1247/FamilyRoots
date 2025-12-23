@@ -2,139 +2,111 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { checkAuth, fetchProfileId, signOut } from '../services/auth';
-import { fetchUserFamilies, createNewFamilyTree, deleteFamilyTree, renameFamilyTree , shareFamilyTree} from '../services/api';
+import { supabase } from '../config/supabaseClient';
+import { signOut } from '../services/auth';
+import { fetchUserFamilies, createNewFamilyTree, deleteFamilyTree, renameFamilyTree } from '../services/api';
 import FamilyTreeCard from '../components/FamilyTreeCard';
 import Modal from '../components/Modal'; 
+import ShareTreeModal from '../components/ShareTreeModal';
 
-const Dashboard = () => {
+const Dashboard = ({ session }) => {
+    // 1. ALL HOOKS MUST BE AT THE TOP
     const [user, setUser] = useState(null);
-    const [profileId, setProfileId] = useState(null);
     const [families, setFamilies] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [selectedTreeForShare, setSelectedTreeForShare] = useState(null);
     const [treeName, setTreeName] = useState('');
     const [message, setMessage] = useState('');
-
+    
     const navigate = useNavigate();
 
-    // 1. Initial Authentication and Data Fetch
     useEffect(() => {
-        async function authenticateAndLoad() {
-        try {
-            const authUser = await checkAuth();
-            if (authUser) {
-                setUser(authUser);
-                const pId = await fetchProfileId(authUser.id);
-                setProfileId(pId);
-                if (pId) {
-                    await loadFamilies(pId, authUser.email);
-                }
-            }
-        } catch (err) {
-            console.error(err);
-            setMessage("An error occurred while loading.");
-        } finally {
-            // This ensures the loading screen goes away no matter what
-            setIsLoading(false); 
+        if (session?.user) {
+            setUser(session.user);
+            loadFamilies(session.user.id, session.user.email);
         }
-    }
-    authenticateAndLoad();
-}, []);// Clean dependencies
+    }, [session]);
 
-    const loadFamilies = async (pId,email) => {
-        const { families: fetchedFamilies, error } = await fetchUserFamilies(pId, email);
-        if (error) {
-            console.error('Failed to load families:', error);
-            setMessage('Failed to load family trees.');
-        } else {
-            setFamilies(fetchedFamilies || []);
-        }
+    const loadFamilies = async (userId, email) => {
+        const { families: fetchedFamilies, error } = await fetchUserFamilies(userId, email);
+        if (!error) setFamilies(fetchedFamilies || []);
+        setIsLoading(false);
     };
 
+    // --- FIX: Logic to handle tree creation ---
     const handleCreateTree = async (e) => {
-        e.preventDefault();
-        setMessage('Creating...');
+    e.preventDefault();
+    
+    // Safety check: ensure session is ready
+    if (!treeName.trim() || !session?.user?.id) {
+        alert("Session not ready. Please wait a moment.");
+        return;
+    }
 
-        if (!treeName.trim()) {
-            setMessage('Tree name is required.');
-            return;
-        }
+    try {
+        console.log("Creating tree for User UUID:", session.user.id);
 
-        const { family, error } = await createNewFamilyTree(treeName, profileId);
+        // 1. Insert into families
+        const { data: newFamily, error: familyError } = await supabase
+            .from('families')
+            .insert([{ 
+                name: treeName, 
+                owner_id: session.user.id // This UUID matches profiles.user_id
+            }])
+            .select()
+            .single();
 
-        if (error) {
-            setMessage(`Error creating tree: ${error.message}`);
-        } else {
-            setFamilies([family, ...families]); 
-            setMessage('Tree created successfully!');
-            setTreeName('');
-            setTimeout(() => {
-                setShowModal(false);
-                setMessage('');
-            }, 500);
-        }
-    };
+        if (familyError) throw familyError;
 
-    const handleShareTree = async (familyId, email) => {
-    const { error } = await shareFamilyTree(familyId, email);
-    if (error) {
-        alert("Error sharing: " + error.message);
-    } else {
-        alert("Tree shared successfully with " + email);
+        // 2. IMPORTANT: Also add yourself to family_shares 
+        // This prevents the "viewonly" toolbar issue on your new tree
+        const { error: shareError } = await supabase
+            .from('family_shares')
+            .insert([{
+                family_id: newFamily.id,
+                shared_with_email: session.user.email,
+                permission_level: 'full'
+            }]);
+
+        if (shareError) console.warn("Share entry failed, but tree was created:", shareError.message);
+
+        // 3. Update UI
+        setFamilies(prev => [newFamily, ...prev]);
+        setTreeName('');
+        setShowModal(false);
+        
+    } catch (err) {
+        console.error("Tree creation failed:", err.message);
+        alert(`Error: ${err.message}`);
     }
 };
-
-    const handleRenameTree = async (familyId, newName) => {
-        const { error } = await renameFamilyTree(familyId, newName);
-        if (error) {
-            alert("Error renaming tree: " + error.message);
-        } else {
-            setFamilies(prev => prev.map(f => 
-                f.id === familyId ? { ...f, name: newName } : f
-            ));
-        }
-    };
-
-    const handleDeleteTree = async (familyId, name) => {
-        if (window.confirm(`Are you sure you want to delete the entire "${name}" tree? This cannot be undone.`)) {
-            const { success, error } = await deleteFamilyTree(familyId);
-            if (success) {
-                setFamilies(prev => prev.filter(f => f.id !== familyId));
-                setMessage(`"${name}" deleted successfully.`);
-                setTimeout(() => setMessage(''), 3000);
-            } else {
-                alert("Error deleting tree: " + error.message);
-            }
-        }
-    };
     
-    const handleViewTree = (familyId) => {
-        navigate(`/tree-editor/${familyId}`); 
-    };
 
-    if (isLoading) {
-        return <div className="loading-state">Loading application...</div>;
-    }
+    // 2. EARLY RETURN MUST COME AFTER ALL HOOKS
+    if (isLoading) return <div className="loading">Loading application...</div>;
 
     const sortedFamilies = [...families].sort((a, b) => {
     // This handles alphabetical sorting (A to Z)
     // .toLowerCase() ensures "apple" and "Apple" are treated correctly
     return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
 });
+    
 
     return (
         <div id="app-wrapper">
             <aside id="sidebar">
                 <div className="sidebar-header">
                     <h1 className="app-title">FamilyRoots</h1>
-                    <p id="user-display" className="user-info">{user?.email}</p>
+                    <p className="user-info">{session?.user?.email || "Guest"}</p>
                 </div>
+
                 <nav className="main-nav">
                     <button onClick={() => navigate('/dashboard')} className="nav-link active">🏠 My Family Trees</button>
                     <button onClick={() => setShowModal(true)} className="nav-link">➕ Start New Tree</button>
                     <button onClick={() => navigate('/profile')} className="nav-link">👤 Edit Profile</button>
                 </nav>
+
                 <div className="sidebar-footer">
                     <button onClick={signOut} className="secondary-btn">Sign Out</button>
                 </div>
@@ -145,44 +117,55 @@ const Dashboard = () => {
                     <h2>My Family Trees</h2>
                     <button onClick={() => setShowModal(true)} className="primary-btn">Create New Tree</button>
                 </header>
-                
+
                 <div className="tree-grid">
                     {sortedFamilies.length > 0 ? (
                         sortedFamilies.map(family => (
                             <FamilyTreeCard 
                                 key={family.id} 
                                 family={family} 
-                                onView={handleViewTree}
-                                onDelete={handleDeleteTree}
-                                onRename={handleRenameTree}
-                                onShare={handleShareTree}
+                                onView={(id) => navigate(`/tree-editor/${id}`)}
+                                onDelete={deleteFamilyTree}
+                                onRename={renameFamilyTree}
+                                onShare={() => setSelectedTreeForShare(family.id)} 
                             />
                         ))
                     ) : (
                         <div className="empty-state">
                             <h3>No Family Trees Found</h3>
-                            <p>Start your journey by creating your first family tree.</p>
-                            <button onClick={() => setShowModal(true)} className="primary-btn">Create Tree</button>
+                            <button onClick={() => setShowModal(true)} className="primary-btn">Create Your First Tree</button>
                         </div>
                     )}
                 </div>
+
+                {selectedTreeForShare && (
+                    <ShareTreeModal 
+                        familyId={selectedTreeForShare} 
+                        onClose={() => setSelectedTreeForShare(null)} 
+                    />
+                )}
                 {message && <p className="status-message">{message}</p>}
             </main>
 
-            <Modal show={showModal} onClose={() => setShowModal(false)} title="Start a New Family Tree">
+            {/* --- FIX: Added form content as children of the Modal --- */}
+            <Modal 
+                show={showModal} 
+                onClose={() => { setShowModal(false); setMessage(''); }} 
+                title="Start a New Family Tree"
+            >
                 <form onSubmit={handleCreateTree} className="form-content">
-                    <div className="form-group">
-                        <label htmlFor="tree-name">Family Tree Name</label>
+                    <div className="form-group" style={{ marginBottom: '15px' }}>
+                        <label style={{ display: 'block', marginBottom: '5px' }}>Family Tree Name</label>
                         <input 
                             type="text" 
-                            id="tree-name" 
                             required 
                             value={treeName} 
                             onChange={(e) => setTreeName(e.target.value)}
-                            placeholder="e.g., The Smith Family History"
+                            placeholder="e.g., The Smith Family"
+                            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
                         />
                     </div>
-                    <div className="form-actions">
+                    <div className="form-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                         <button type="button" onClick={() => setShowModal(false)} className="secondary-btn">Cancel</button>
                         <button type="submit" className="primary-btn">Create Tree</button>
                     </div>
