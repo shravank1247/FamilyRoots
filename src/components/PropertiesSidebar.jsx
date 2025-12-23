@@ -346,64 +346,6 @@ const PropertiesSidebar = ({ person, familyId, onSave, onClose }) => {
                 </div>
             </form>
             
-            {/* --- Relationships Section --- */}
-            {mode === 'edit' && (
-                <div className="relationships-section">
-                    <h4>Relationships ({relations.length})</h4>
-
-                    {/* Add Relationship Form */}
-                    <form onSubmit={handleAddRelationship} className="relationship-form">
-                        <div className="form-group">
-                            <label htmlFor="type">Link Type</label>
-                            <select id="type" value={relForm.type} onChange={handleRelationFormChange} required>
-                                <option value="">Select Type...</option>
-                                {Object.entries(RELATIONSHIP_TYPES).map(([key, value]) => (
-                                    <option key={key} value={key}>{value}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="personId">Related Person</label>
-                            <select id="personId" value={relForm.personId} onChange={handleRelationFormChange} required>
-                                <option value="">Select Person...</option>
-                                {allPeople
-                                    .filter(p => p.id !== person.id) // Cannot relate to self
-                                    .map(p => (
-                                        <option key={p.id} value={p.id}>{p.first_name} {p.surname || p.last_name}</option>
-                                    ))}
-                            </select>
-                        </div>
-                        <button type="submit" className="primary-btn small-btn">Add Relation</button>
-                    </form>
-                    
-                    {/* Existing Relationships List */}
-                    <div className="relations-list">
-                        {relations.length === 0 ? (
-                            <p>No connections established.</p>
-                        ) : (
-                            relations.map(rel => {
-                                // Determine which side (A or B) is the *other* person
-                                const otherPerson = rel.person_a.id === person.id ? rel.person_b : rel.person_a;
-                                return (
-                                    <div key={rel.id} className="relation-item">
-                                        <span>
-                                            <strong>{RELATIONSHIP_TYPES[rel.type]}: </strong> 
-                                            {otherPerson.first_name} {otherPerson.surname || otherPerson.last_name}
-                                        </span>
-                                        <button 
-                                            className="delete-relation-btn"
-                                            onClick={() => handleDeleteRelationship(rel.id)}
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-                </div>
-            )}
-            
             <p className="status-message">{statusMessage}</p>
 
         </div>
