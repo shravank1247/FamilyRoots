@@ -42,18 +42,19 @@ const ShareTreeModal = ({ familyId, onClose }) => {
         }
     };
 
-    const removeAccess = async (userEmail) => {
-        if (window.confirm(`Remove access for ${userEmail}?`)) {
-            const { error } = await supabase
-                .from('tree_permissions')
-                .delete()
-                .eq('tree_id', familyId)
-                .eq('user_email', userEmail);
-            
-            if (!error) fetchCollaborators();
-        }
-    };
-
+    // Fixed Modal Logic for collaborators
+const removeAccess = async (userEmail) => {
+    const { error } = await supabase
+        .from('tree_permissions')
+        .delete()
+        .eq('tree_id', familyId)
+        .eq('user_email', userEmail);
+    
+    if (!error) {
+        // Refresh the local state list of collaborators
+        setCollaborators(prev => prev.filter(c => c.user_email !== userEmail));
+    }
+};
     return (
         <div className="modal-overlay" style={{
             position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',

@@ -13,18 +13,19 @@ function App() {
   useEffect(() => {
     // We create an internal async function so we can use 'await' safely
     // Inside App.jsx - useEffect
+// inside App.jsx
 const initializeAuth = async () => {
   try {
     const { data: { session: initialSession } } = await supabase.auth.getSession();
     
-    if (initialSession) {
-      // Use .select() without .single() to prevent the "0 rows" error
+    if (initialSession && initialSession.user) {
+      // 1. Fetch as an array (remove .single()) to prevent PGRST116 crash
       const { data: profiles, error } = await supabase
         .from('profiles')
         .select('is_super_user')
         .eq('id', initialSession.user.id);
 
-      // If no profile found, profiles will be an empty array [] rather than an error
+      // 2. Safely check if a profile exists
       const isSuper = (profiles && profiles.length > 0) ? profiles[0].is_super_user : false;
 
       setSession({ 
@@ -34,13 +35,25 @@ const initializeAuth = async () => {
     } else {
       setSession(null);
     }
-  } catch (err) {
-    console.error("Auth init error:", err);
+  } catch (error) {
+    console.error("Auth error:", error);
     setSession(null);
   } finally {
-    setLoading(false); // This ensures the loading screen disappears even if there is an error
+    // 3. THIS IS CRITICAL: Always turn off loading, even if there's an error
+    setLoading(false); 
   }
 };
+
+// Temporary check to see if loading ever finishes
+useEffect(() => {
+  const timer = setTimeout(() => {
+    if (loading) {
+      console.warn("Loading timed out - forcing loading to false");
+      setLoading(false);
+    }
+  }, 5000); // 5 seconds
+  return () => clearTimeout(timer);
+}, [loading]);
 
     initializeAuth();
 
