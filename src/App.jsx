@@ -12,33 +12,35 @@ function App() {
 
   useEffect(() => {
     // We create an internal async function so we can use 'await' safely
-    const initializeAuth = async () => {
+    // Inside App.jsx - useEffect
+const initializeAuth = async () => {
   try {
     const { data: { session: initialSession } } = await supabase.auth.getSession();
     
-      if (initialSession) {
-        // 1. Remove .single() to avoid the crash if the row is missing
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('is_super_user')
-          .eq('id', initialSession.user.id);
+    if (initialSession) {
+      // Use .select() without .single() to prevent the "0 rows" error
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('is_super_user')
+        .eq('id', initialSession.user.id);
 
-        // 2. Check if we actually got a result (it returns an array when .single() is removed)
-        const isSuper = profile && profile.length > 0 ? profile[0].is_super_user : false;
+      // If no profile found, profiles will be an empty array [] rather than an error
+      const isSuper = (profiles && profiles.length > 0) ? profiles[0].is_super_user : false;
 
-        setSession({ 
-          ...initialSession, 
-          isSuperUser: isSuper 
-        });
-      } else {
-        setSession(null);
-      }
-    } catch (error) {
-      console.error("Auth initialization error:", error);
-    } finally {
-      setLoading(false);
+      setSession({ 
+        ...initialSession, 
+        isSuperUser: isSuper 
+      });
+    } else {
+      setSession(null);
     }
-  };
+  } catch (err) {
+    console.error("Auth init error:", err);
+    setSession(null);
+  } finally {
+    setLoading(false); // This ensures the loading screen disappears even if there is an error
+  }
+};
 
     initializeAuth();
 
