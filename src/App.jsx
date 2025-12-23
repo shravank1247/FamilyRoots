@@ -1,104 +1,55 @@
+// src/App.jsx
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './config/supabaseClient';
 
-import Dashboard from './pages/Dashboard';
-import TreeEditor from './pages/TreeEditor';
-import Login from './pages/Login';
-
 function App() {
+  // 1. ALL HOOKS AT THE TOP
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // We create an internal async function so we can use 'await' safely
-
-// App.jsx
-const initializeAuth = async () => {
-    try {
+    const initializeAuth = async () => {
+      try {
         const { data: { session: initSession } } = await supabase.auth.getSession();
         if (initSession) {
-            // NEVER use .single() here. Use .select() and check length.
-            const { data: profiles } = await supabase
-                .from('profiles')
-                .select('is_super_user')
-                .eq('id', initSession.user.id);
+          // Use .select() instead of .single() to prevent Postgres error
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('is_super_user')
+            .eq('id', initSession.user.id);
 
-            const isSuper = profiles && profiles.length > 0 ? profiles[0].is_super_user : false;
-            setSession({ ...initSession, isSuperUser: isSuper });
+          const isSuper = profiles && profiles.length > 0 ? profiles[0].is_super_user : false;
+          setSession({ ...initSession, isSuperUser: isSuper });
         }
-    } catch (e) {
+      } catch (e) {
         console.error("Auth init failed", e);
-    } finally {
-        // This ensures the loading screen goes away no matter what
-        setLoading(false); 
-    }
-};
-
-// Temporary check to see if loading ever finishes
-useEffect(() => {
-  const timer = setTimeout(() => {
-    if (loading) {
-      console.warn("Loading timed out - forcing loading to false");
-      setLoading(false);
-    }
-  }, 5000); // 5 seconds
-  return () => clearTimeout(timer);
-}, [loading]);
+      } finally {
+        setLoading(false); // Gate opens no matter what
+      }
+    };
 
     initializeAuth();
 
-    // 4. Listen for Login/Logout changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      if (newSession) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_super_user')
-          .eq('id', newSession.user.id)
-          .single();
-
-        setSession({ ...newSession, isSuperUser: profile?.is_super_user || false });
-      } else {
-        setSession(null);
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  // 2. NOW YOU CAN HAVE THE RETURN FOR LOADING
   if (loading) {
-    return (
-      <div className="loading-screen" style={{ 
-        display: 'flex', justifyContent: 'center', alignItems: 'center', 
-        height: '100vh', color: '#2d6a4f', fontWeight: 'bold' 
-      }}>
-        Loading HierarchicalRoots...
-      </div>
-    );
+    return <div className="loading-screen">Loading HierarchicalRoots...</div>;
   }
 
+  // 3. MAIN ROUTING RETURN
   return (
     <Routes>
-      <Route 
-        path="/" 
-        element={session ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} 
-      /> 
-      <Route 
-        path="/login" 
-        element={session ? <Navigate to="/dashboard" /> : <Login />} 
-      />
-      <Route 
-        path="/dashboard" 
-        element={session ? <Dashboard session={session} /> : <Navigate to="/login" />} 
-      />
-      <Route 
-        path="/tree-editor/:familyId" 
-        element={session ? <TreeEditor session={session} /> : <Navigate to="/login" />} 
-      />
-      <Route path="/profile" element={<div>Profile Page - Coming Soon</div>} />
+      <Route path="/login" element={!session ? <Login /> : <Navigate to="/dashboard" />} />
+      <Route path="/dashboard" element={session ? <Dashboard session={session} /> : <Navigate to="/login" />} />
+      {/* ... other routes ... */}
     </Routes>
   );
 }
-
-export default App;
