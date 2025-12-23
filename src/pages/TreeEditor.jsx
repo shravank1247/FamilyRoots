@@ -67,37 +67,37 @@ const TreeEditorRenderer = ({ session }) => {
     const [userRole, setUserRole] = useState('viewonly'); // Default to safest
 
    useEffect(() => {
-        const checkPermissions = async () => {
-            if (!session?.user) return;
+    const checkPermissions = async () => {
+        if (!session?.user) return;
 
-            try {
-                // Check Super User status first
-                if (session.isSuperUser) {
-                    setUserRole('full');
-                    return;
-                }
+        try {
+            // Master Override for you
+            if (session.isSuperUser || session.user.email === 'indarkumar47@gmail.com') {
+                setUserRole('full');
+                return;
+            }
 
-                // Query with .select() to avoid .single() crashes
-                const { data, error } = await supabase
-                    .from('tree_permissions')
-                    .select('role')
-                    .eq('tree_id', familyId)
-                    .eq('user_email', session.user.email);
+            // Look at the correct table: Family_Shares
+            const { data, error } = await supabase
+                .from('Family_Shares') 
+                .select('role')
+                .eq('family_id', familyId)
+                .eq('shared_with_email', session.user.email);
 
-                // Handle array response correctly
-                if (data && data.length > 0) {
-                    setUserRole(data[0].role);
-                } else {
-                    setUserRole('viewonly');
-                }
-            } catch (err) {
-                console.error("Permission check failed", err);
+            if (data && data.length > 0) {
+                // Map 'view' to 'viewonly' if necessary for your logic
+                const dbRole = data[0].role;
+                setUserRole(dbRole === 'view' ? 'viewonly' : dbRole);
+            } else {
                 setUserRole('viewonly');
             }
-        };
-
-        checkPermissions();
-    }, [familyId, session]);
+        } catch (err) {
+            console.error("Permission check failed", err);
+            setUserRole('viewonly');
+        }
+    };
+    checkPermissions();
+}, [familyId, session]);
 
 // // 3. THE "SAFETY GATE" (Only return JSX here, after all hooks)
 // if (!session || !session.user) {

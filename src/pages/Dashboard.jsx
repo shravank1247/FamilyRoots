@@ -130,11 +130,9 @@ const Dashboard = ({ session }) => {
                         <label htmlFor="tree-name" style={{ display: 'block', marginBottom: '5px' }}>Family Tree Name</label>
                         <input 
                             type="text" 
-                            id="tree-name" 
                             required 
                             value={treeName} 
                             onChange={(e) => setTreeName(e.target.value)}
-                            placeholder="e.g., The Smith Family History"
                             style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
                         />
                     </div>
