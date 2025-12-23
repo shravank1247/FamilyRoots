@@ -549,11 +549,6 @@ const canMoveNodes = userRole === 'full';
 const canEditProperties = userRole === 'edit' || userRole === 'full';
 const canAddOrDelete = userRole === 'full';
 
-// 3. THE "SAFETY GATE" (Only return JSX here, after all hooks)
-if (!session.user) {
-    return <div className="loading-screen">Checking Permissions session user...</div>; //
-}
-
     return (
         <div className="tree-editor-wrapper">
         {/* 1. FIXED HEADER: Outside the main content flow */}
