@@ -1,15 +1,26 @@
-name: Keep Supabase Alive
+name: Supabase Master Keep-Alive
 
 on:
   schedule:
-    - cron: '0 0 */1 * *' # Still runs every 3 days to be safe
+    - cron: '0 0 */1 * *'
   workflow_dispatch:
 
 jobs:
-  ping:
+  # Job 1: General API Ping
+  api_ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Real Database Query
+      - name: Basic API Call
+        run: |
+          curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
+
+  # Job 2: Real Database Interaction (The one that actually stops the pause)
+  database_query:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query specific table
         run: |
           curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/profiles?select=*&limit=1" \
           -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
