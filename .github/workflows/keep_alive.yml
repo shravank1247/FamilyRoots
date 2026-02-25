@@ -3,7 +3,7 @@ name: Keep Supabase Alive
 on:
   schedule:
     # This runs at 00:00 UTC every 3 days (Supabase pauses after 7)
-    - cron: '0 0 */3 * *'
+    - cron: '0 0 */1 * *'
   workflow_dispatch: # Allows you to run it manually for testing
 
 jobs:
